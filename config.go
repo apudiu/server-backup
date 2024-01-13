@@ -4,70 +4,42 @@ import (
 	"fmt"
 	"gopkg.in/yaml.v3"
 	"log"
+	"net"
 	"os"
+	"path"
 	"strings"
 )
 
 var configFilePath = "./config.yml"
 
-type caInfo struct {
-	Organization  string `yaml:"organization"`
-	Country       string `yaml:"country"`
-	Locality      string `yaml:"city"`
-	StreetAddress string `yaml:"street"`
-	PostalCode    string `yaml:"postalCode"`
+type projectDbInfo struct {
+	Host net.IP `yaml:"hostIp"`
+	User string `yaml:"user"`
+	Pass string `yaml:"pass"`
+	Name string `yaml:"name"`
 }
 
-type caConfig struct {
-	Key  string `yaml:"privateKeyPath"`
-	Cert string `yaml:"certificatePath"`
+type projectPath struct {
+	Path         string   `yaml:"path"`
+	ExcludePaths []string `yaml:"excludePaths"`
+	ZipFileName  string   `yaml:"zipFileName"`
+	EnvFilePath  string   `yaml:"envFilePath"`
 
-	Serial      int `yaml:"serial"`
-	ExpiryYears int `yaml:"expiryYears"`
-	Info        caInfo
-}
-
-type serverInfo struct {
-	Organization  string   `yaml:"organization"`
-	Country       string   `yaml:"country"`
-	Locality      string   `yaml:"city"`
-	StreetAddress string   `yaml:"street"`
-	PostalCode    string   `yaml:"postalCode"`
-	CommonNames   []string `yaml:"domainNames"`
+	// when env file is not available, provide DB credentials
+	DbInfo projectDbInfo `yaml:"dbInfo"`
 }
 
 type serverConfig struct {
-	Key string `yaml:"privateKeyPath"`
-
-	Serial      int `yaml:"serial"`
-	ExpiryYears int `yaml:"expiryYears"`
-	Info        serverInfo
-	IpAddresses []string `yaml:"ipAddresses"`
-	// encryption password
-	Password string `yaml:"password"`
-}
-
-type projectInfo struct {
-	Name string
-	Path string
-	// relative path to the files
-	CaKey       string
-	CaCertName  string
-	CaCertDer   string
-	CaCertPem   string
-	SrvKey      string
-	SrvCertName string
-	SrvCertDer  string
-	SrvCertPem  string
-	SrvCertPfx  string
+	Key            string        `yaml:"privateKeyPath"`
+	Ip             net.IP        `yaml:"ip"`
+	Port           int           `yaml:"port"`
+	ProjectRoot    string        `yaml:"projectRoot"`
+	BackupSources  []projectPath `yaml:"BackupSources"`
+	BackupDestPath string        `yaml:"backupDestPath"`
 }
 
 type config struct {
-	// will be used as dir & file name
-	ProjectName string      `yaml:"projectName"`
-	ProjectInfo projectInfo `yaml:"-"`
-	Ca          caConfig
-	Server      serverConfig
+	Servers []serverConfig `yaml:"servers"`
 }
 
 func (c *config) Parse() {
@@ -80,9 +52,6 @@ func (c *config) Parse() {
 
 	unmarshalErr := yaml.Unmarshal(fb, c)
 	failIfErr(unmarshalErr)
-
-	// attach generated info
-	c.ProjectInfo = genProjectInfo(c.ProjectName)
 }
 
 func generateEmptyConfigFile() {
@@ -100,40 +69,53 @@ func generateEmptyConfigFile() {
 	}
 
 	// generated project info
-	pn := "example.com"
-	pi := genProjectInfo(pn)
-
 	c := config{
-		ProjectName: pn,
-		Ca: caConfig{
-			Key:  pi.CaKey,
-			Cert: pi.CaCertPem,
-
-			Serial:      2020,
-			ExpiryYears: 10,
-			Info: caInfo{
-				Organization:  "Snebtaf",
-				Country:       "UK",
-				Locality:      "London",
-				StreetAddress: "Bricklane",
-				PostalCode:    "E1 6QL",
+		Servers: []serverConfig{
+			{
+				Key:            "/home/user/serverKey.pem",
+				Ip:             net.IP{192, 168, 0, 100},
+				Port:           21,
+				ProjectRoot:    path.Join("var", "www", "php80"),
+				BackupDestPath: "",
+				BackupSources: []projectPath{
+					{
+						Path: "order-online",
+						ExcludePaths: []string{
+							path.Join("api", "vendor"),
+							path.Join("api", "storage", "app", "*"),
+							path.Join("api", "storage", "framework", "*"),
+							path.Join("api", "storage", "logs", "*"),
+							path.Join("api", ".rsyncIgnore"),
+						},
+						ZipFileName: "",
+						EnvFilePath: path.Join("api", ".env"),
+						DbInfo: projectDbInfo{
+							Host: nil,
+							User: "",
+							Pass: "",
+							Name: "",
+						},
+					},
+					{
+						Path: "buy-sell",
+						ExcludePaths: []string{
+							path.Join("api", "vendor"),
+							path.Join("api", "storage", "app", "*"),
+							path.Join("api", "storage", "framework", "*"),
+							path.Join("api", "storage", "logs", "*"),
+							path.Join("api", ".rsyncIgnore"),
+						},
+						ZipFileName: "",
+						EnvFilePath: path.Join("api", ".env"),
+						DbInfo: projectDbInfo{
+							Host: nil,
+							User: "",
+							Pass: "",
+							Name: "",
+						},
+					},
+				},
 			},
-		},
-		Server: serverConfig{
-			Key: pi.SrvKey,
-
-			Serial:      2021,
-			ExpiryYears: 5,
-			Info: serverInfo{
-				Organization:  "Ordering2online",
-				Country:       "BD",
-				Locality:      "Sylhet",
-				StreetAddress: "Ambarkhana",
-				PostalCode:    "1201",
-				CommonNames:   []string{"print.digitafact.com"},
-			},
-			IpAddresses: []string{"192.168.0.121"},
-			Password:    "1234",
 		},
 	}
 

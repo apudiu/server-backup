@@ -1,2 +1,35 @@
 servers:
-  192.168.0.100:
+    - privateKeyPath: /home/user/serverKey.pem
+      ip: 192.168.0.100
+      port: 21
+      projectRoot: var/www/php80
+      BackupSources:
+        - path: order-online
+          excludePaths:
+            - api/vendor
+            - api/storage/app/*
+            - api/storage/framework/*
+            - api/storage/logs/*
+            - api/.rsyncIgnore
+          zipFileName: ""
+          envFilePath: api/.env
+          dbInfo:
+            hostIp: ""
+            user: ""
+            pass: ""
+            name: ""
+        - path: buy-sell
+          excludePaths:
+            - api/vendor
+            - api/storage/app/*
+            - api/storage/framework/*
+            - api/storage/logs/*
+            - api/.rsyncIgnore
+          zipFileName: ""
+          envFilePath: api/.env
+          dbInfo:
+            hostIp: ""
+            user: ""
+            pass: ""
+            name: ""
+      backupDestPath: ""

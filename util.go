@@ -43,47 +43,27 @@ func readUserInput(msg string) (val string, err error) {
 	return
 }
 
-func genProjectInfo(projectName string) projectInfo {
-	info := projectInfo{}
+func parseEnv(path string) map[string]string {
+	f, err := os.Open(path)
+	failIfErr(err, "Failed to read env file from "+path)
+	defer f.Close()
 
-	// clean name
-	replaceChars := map[string]string{
-		"\n": "",
-		"$":  "",
-		"#":  "",
-		",":  "",
-		";":  "",
-		"[":  "",
-		"]":  "",
-		"{":  "",
-		"}":  "",
-		"(":  "",
-		")":  "",
-		"~":  "",
-		" ":  "_",
-		".":  "-",
+	delim := "="
+	var envMap = make(map[string]string)
+
+	scanner := bufio.NewScanner(f)
+
+	for scanner.Scan() {
+		l := scanner.Text()
+		if valid := strings.Contains(l, delim); !valid {
+			continue
+		}
+
+		s := strings.Split(l, delim)
+		envMap[s[0]] = s[1]
 	}
 
-	cn := projectName
-	for replace, with := range replaceChars {
-		cn = strings.ReplaceAll(cn, replace, with)
-	}
+	fmt.Println(envMap)
 
-	p := fmt.Sprintf("./%s/", cn)
-	caCertNamePathWithoutExt := p + cn + "_ca_cert"
-	srvCertNamePathWithoutExt := p + cn + "_srv_cert"
-
-	info.Name = cn                                       // ex: domain-com
-	info.Path = p                                        // ex: ./domain-com/
-	info.CaKey = p + cn + "_ca_key.pem"                  // ex: ./domain-com/_ca_key.pem
-	info.CaCertName = caCertNamePathWithoutExt           // ex: ./domain-com/_ca_cert
-	info.CaCertDer = caCertNamePathWithoutExt + ".crt"   // ex: ./domain-com/_ca_cert.crt
-	info.CaCertPem = caCertNamePathWithoutExt + ".pem"   // ex: ./domain-com/_ca_cert.pem
-	info.SrvCertName = srvCertNamePathWithoutExt         // ex: ./domain-com/_srv_cert
-	info.SrvKey = p + cn + "_srv_key.pem"                // ex: ./domain-com/_srv_key.pem
-	info.SrvCertDer = srvCertNamePathWithoutExt + ".crt" // ex: ./domain-com/_srv_cert.crt
-	info.SrvCertPem = srvCertNamePathWithoutExt + ".pem" // ex: ./domain-com/_srv_cert.pem
-	info.SrvCertPfx = srvCertNamePathWithoutExt + ".pfx" // ex: ./domain-com/_srv_cert.pfx
-
-	return info
+	return envMap
 }
