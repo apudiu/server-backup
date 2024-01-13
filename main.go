@@ -1,6 +1,6 @@
 package main
 
 func main() {
-	//generateEmptyConfigFile()
-	parseEnv("./.env")
+	generateEmptyConfigFile()
+	//parseEnv("./.env")
 }
