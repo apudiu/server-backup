@@ -44,6 +44,8 @@ type serverConfig struct {
 	Key            string        `yaml:"privateKeyPath"`
 	Ip             net.IP        `yaml:"ip"`
 	Port           int           `yaml:"port"`
+	User           string        `yaml:"user"`
+	Password       string        `yaml:"password"`
 	ProjectRoot    string        `yaml:"projectRoot"`
 	BackupSources  []projectPath `yaml:"BackupSources"`
 	BackupDestPath string        `yaml:"backupDestPath"`
@@ -86,6 +88,8 @@ func generateEmptyConfigFile() {
 				Key:            "/home/user/serverKey.pem",
 				Ip:             net.IP{192, 168, 0, 100},
 				Port:           21,
+				User:           "privilegedUserWhoCanDoThisTasks",
+				Password:       "123456",
 				ProjectRoot:    path.Join("var", "www", "php80"),
 				BackupDestPath: "",
 				BackupSources: []projectPath{
