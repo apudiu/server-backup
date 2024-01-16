@@ -87,7 +87,7 @@ func generateEmptyConfigFile() {
 			{
 				Key:            "/home/user/serverKey.pem",
 				Ip:             net.IP{192, 168, 0, 100},
-				Port:           21,
+				Port:           22,
 				User:           "privilegedUserWhoCanDoThisTasks",
 				Password:       "123456",
 				ProjectRoot:    path.Join("var", "www", "php80"),
