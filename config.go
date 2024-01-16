@@ -53,6 +53,7 @@ type serverConfig struct {
 	ProjectRoot    string   `yaml:"projectRoot"`
 	BackupSources  []string `yaml:"backupSources"`
 	BackupDestPath string   `yaml:"backupDestPath"`
+	Projects       []projectPath
 }
 
 type config struct {
@@ -60,15 +61,56 @@ type config struct {
 }
 
 func (c *config) Parse() {
-	if exists, _ := isPathExist(configDir); !exists {
-		log.Fatalln("Config file unavailable at " + configDir)
+	if exists, _ := isPathExist(serverConfigFle); !exists {
+		log.Fatalln("Config file unavailable at " + serverConfigFle)
 	}
 
-	fb, err := os.ReadFile(configDir)
+	sb, err := os.ReadFile(serverConfigFle)
 	failIfErr(err)
 
-	unmarshalErr := yaml.Unmarshal(fb, c)
+	unmarshalErr := yaml.Unmarshal(sb, c)
 	failIfErr(unmarshalErr)
+
+	// load server projects
+	for _, server := range c.Servers {
+		server.Projects = make([]projectPath, 1)
+		projects := make([]projectPath, 0)
+		configFileDir := configDir + DS + server.Ip.String() + DS
+
+		for _, sourceDir := range server.BackupSources {
+			projectConfigFile := configFileDir + sourceDir + ".yml"
+
+			if exists, accessErr := isPathExist(projectConfigFile); !exists {
+				if accessErr != nil {
+					log.Println(accessErr)
+				}
+				log.Println("Project config file unavailable at " + projectConfigFile + " SKIPPING!")
+				continue
+			}
+
+			pb, pbErr := os.ReadFile(projectConfigFile)
+			if pbErr != nil {
+				log.Println(pbErr)
+				log.Println("Project config file parse err " + projectConfigFile + " SKIPPING!")
+				continue
+			}
+
+			pc := projectPath{}
+
+			unmarshalProjectErr := yaml.Unmarshal(pb, &pc)
+			if unmarshalProjectErr != nil {
+				log.Println(unmarshalProjectErr)
+				log.Println("Project config file invalid " + projectConfigFile + " SKIPPING!")
+				continue
+			}
+
+			//todo: parse projects into server
+			projects = append(projects, pc)
+			server.Projects = append(server.Projects, pc)
+		}
+
+		server.Projects = append(server.Projects, projects...)
+	}
 }
 
 func generateEmptyConfigFile() {

@@ -13,11 +13,11 @@ import (
 )
 
 func main() {
-	generateEmptyConfigFile()
+	//generateEmptyConfigFile()
 
-	//c := config{}
-	//c.Parse()
-	////fmt.Printf("%#v", c)
+	c := config{}
+	c.Parse()
+	fmt.Printf("%#v \n", c)
 	//
 	//// login to servers
 	//s := c.Servers[0]
