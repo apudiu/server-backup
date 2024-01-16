@@ -2,9 +2,14 @@ package main
 
 import (
 	"bufio"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
+	"errors"
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -66,4 +71,32 @@ func parseEnv(path string) map[string]string {
 	fmt.Println(envMap)
 
 	return envMap
+}
+
+// keyGetFromFile parses pe encoded private key form disk
+func keyGetFromFile(path string) (key *rsa.PrivateKey, pemBytes []byte, err error) {
+	pemBytes = readFromFile(path)
+	keyBlock, _ := pem.Decode(pemBytes)
+	if keyBlock == nil || keyBlock.Type != "RSA PRIVATE KEY" {
+		err = errors.New("failed to decode PEM block containing private key from " + path)
+		return
+	}
+
+	key, keyParseErr := x509.ParsePKCS1PrivateKey(keyBlock.Bytes)
+	if keyParseErr != nil {
+		err = errors.New("failed to parse private key from " + path)
+		return
+	}
+
+	return key, pemBytes, nil
+}
+
+/*
+makeAbsoluteFilePath constructs platform independent absolute file path
+makeAbsoluteFilePath("home", "user") // /home/user
+*/
+func makeAbsoluteFilePath(paths ...string) (fullPath string) {
+	fullPath = string(os.PathSeparator)
+	fullPath += filepath.Join(paths...)
+	return
 }
