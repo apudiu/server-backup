@@ -72,9 +72,7 @@ func (c *config) Parse() {
 	failIfErr(unmarshalErr)
 
 	// load server projects
-	for _, server := range c.Servers {
-		server.Projects = make([]projectPath, 1)
-		projects := make([]projectPath, 0)
+	for si, server := range c.Servers {
 		configFileDir := configDir + DS + server.Ip.String() + DS
 
 		for _, sourceDir := range server.BackupSources {
@@ -104,12 +102,8 @@ func (c *config) Parse() {
 				continue
 			}
 
-			//todo: parse projects into server
-			projects = append(projects, pc)
-			server.Projects = append(server.Projects, pc)
+			c.Servers[si].Projects = append(c.Servers[si].Projects, pc)
 		}
-
-		server.Projects = append(server.Projects, projects...)
 	}
 }
 

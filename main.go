@@ -18,13 +18,14 @@ func main() {
 	c := config{}
 	c.Parse()
 	fmt.Printf("%#v \n", c)
-	//
+
 	//// login to servers
 	//s := c.Servers[0]
 	//
 	////connectToServer(&s)
 	//res, err := remoteRun(&s, "ls /var/www/php80")
 	//fmt.Println(res, err)
+
 }
 
 func connectToServer(c *serverConfig) {
