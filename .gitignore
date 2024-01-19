@@ -4,8 +4,8 @@ build/*
 
 # config files
 config/*
-!config/servers.sample.yml
-!config/*/*.sample.yml
+!config/192.168.0.100
+!config/192.168.0.100/*.sample.yml
 
 # binaries
 bin/*

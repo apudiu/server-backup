@@ -1,0 +1,21 @@
+path: order-online
+excludePaths:
+    - api/vendor
+    - api/storage/app/*
+    - api/storage/framework/*
+    - api/storage/logs/*
+    - api/.rsyncIgnore
+zipFileName: ""
+envFileInfo:
+    path: api/.env
+    dbHostKeyName: DB_HOST
+    dbPortKeyName: DB_PORT
+    dbUserKeyName: DB_USERNAME
+    dbPassKeyName: DB_PASSWORD
+    dbNameKeyName: DB_DATABASE
+dbInfo:
+    hostIp: ""
+    port: 0
+    user: ""
+    pass: ""
+    name: ""
