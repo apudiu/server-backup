@@ -1,4 +1,4 @@
-package main
+package util
 
 import (
 	"bufio"
@@ -13,31 +13,31 @@ import (
 	"strings"
 )
 
-func writeToFile(path string, content []byte, perm os.FileMode) {
+func WriteToFile(path string, content []byte, perm os.FileMode) {
 	err := os.WriteFile(path, content, perm)
-	failIfErr(err, "Failed to write "+path)
+	FailIfErr(err, "Failed to write "+path)
 }
 
-func readFromFile(path string) []byte {
+func ReadFromFile(path string) []byte {
 	fileBytes, err := os.ReadFile(path)
-	failIfErr(err, "File "+path+" read error: ")
+	FailIfErr(err, "File "+path+" read error: ")
 	return fileBytes
 }
 
-func failIfErr(e error, prependMsg ...string) {
+func FailIfErr(e error, prependMsg ...string) {
 	if e != nil {
 		log.Fatalf("%s, Error: %s \n", prependMsg[0], e.Error())
 	}
 }
 
-func isPathExist(p string) (bool, error) {
+func IsPathExist(p string) (bool, error) {
 	if _, err := os.Stat(p); err != nil {
 		return false, err
 	}
 	return true, nil
 }
 
-func readUserInput(msg string) (val string, err error) {
+func ReadUserInput(msg string) (val string, err error) {
 	fmt.Print(msg + ": ")
 	r := bufio.NewReader(os.Stdin)
 
@@ -48,9 +48,9 @@ func readUserInput(msg string) (val string, err error) {
 	return
 }
 
-func parseEnv(path string) map[string]string {
+func ParseEnv(path string) map[string]string {
 	f, err := os.Open(path)
-	failIfErr(err, "Failed to read env file from "+path)
+	FailIfErr(err, "Failed to read env file from "+path)
 	defer f.Close()
 
 	delim := "="
@@ -73,9 +73,9 @@ func parseEnv(path string) map[string]string {
 	return envMap
 }
 
-// keyGetFromFile parses pe encoded private key form disk
-func keyGetFromFile(path string) (key *rsa.PrivateKey, pemBytes []byte, err error) {
-	pemBytes = readFromFile(path)
+// KeyGetFromFile parses pe encoded private key form disk
+func KeyGetFromFile(path string) (key *rsa.PrivateKey, pemBytes []byte, err error) {
+	pemBytes = ReadFromFile(path)
 	keyBlock, _ := pem.Decode(pemBytes)
 	if keyBlock == nil || keyBlock.Type != "RSA PRIVATE KEY" {
 		err = errors.New("failed to decode PEM block containing private key from " + path)
@@ -92,10 +92,10 @@ func keyGetFromFile(path string) (key *rsa.PrivateKey, pemBytes []byte, err erro
 }
 
 /*
-makeAbsoluteFilePath constructs platform independent absolute file path
-makeAbsoluteFilePath("home", "user") // /home/user
+MakeAbsoluteFilePath constructs platform independent absolute file path
+MakeAbsoluteFilePath("home", "user") // /home/user
 */
-func makeAbsoluteFilePath(paths ...string) (fullPath string) {
+func MakeAbsoluteFilePath(paths ...string) (fullPath string) {
 	fullPath = string(os.PathSeparator)
 	fullPath += filepath.Join(paths...)
 	return

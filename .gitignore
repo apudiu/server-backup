@@ -5,4 +5,7 @@ build/*
 # config files
 config/*
 !config/servers.sample.yml
-!config/192.168.0.100/order-online.sample.yml
+!config/*/*.sample.yml
+
+# binaries
+bin/*

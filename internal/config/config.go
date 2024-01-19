@@ -1,7 +1,8 @@
-package main
+package config
 
 import (
 	"fmt"
+	"github.com/apudiu/server-backup/internal/util"
 	"gopkg.in/yaml.v3"
 	"log"
 	"net"
@@ -13,7 +14,7 @@ import (
 
 const (
 	DS              = string(os.PathSeparator)
-	configDir       = "." + DS + "config"
+	configDir       = "." + DS + "Config"
 	serverConfigFle = configDir + DS + "servers.yml"
 )
 
@@ -44,7 +45,7 @@ type projectPath struct {
 	DbInfo projectDbInfo `yaml:"dbInfo"`
 }
 
-type serverConfig struct {
+type ServerConfig struct {
 	Key            string   `yaml:"privateKeyPath"`
 	Ip             net.IP   `yaml:"ip"`
 	Port           int      `yaml:"port"`
@@ -56,20 +57,20 @@ type serverConfig struct {
 	Projects       []projectPath
 }
 
-type config struct {
-	Servers []serverConfig `yaml:"servers"`
+type Config struct {
+	Servers []ServerConfig `yaml:"servers"`
 }
 
-func (c *config) Parse() {
-	if exists, _ := isPathExist(serverConfigFle); !exists {
+func (c *Config) Parse() {
+	if exists, _ := util.IsPathExist(serverConfigFle); !exists {
 		log.Fatalln("Config file unavailable at " + serverConfigFle)
 	}
 
 	sb, err := os.ReadFile(serverConfigFle)
-	failIfErr(err)
+	util.FailIfErr(err)
 
 	unmarshalErr := yaml.Unmarshal(sb, c)
-	failIfErr(unmarshalErr)
+	util.FailIfErr(unmarshalErr)
 
 	// load server projects
 	for srvIdx := range c.Servers {
@@ -79,18 +80,18 @@ func (c *config) Parse() {
 		for _, sourceDir := range server.BackupSources {
 			projectConfigFile := configFileDir + sourceDir + ".yml"
 
-			if exists, accessErr := isPathExist(projectConfigFile); !exists {
+			if exists, accessErr := util.IsPathExist(projectConfigFile); !exists {
 				if accessErr != nil {
 					log.Println(accessErr)
 				}
-				log.Println("Project config file unavailable at " + projectConfigFile + " SKIPPING!")
+				log.Println("Project Config file unavailable at " + projectConfigFile + " SKIPPING!")
 				continue
 			}
 
 			pb, pbErr := os.ReadFile(projectConfigFile)
 			if pbErr != nil {
 				log.Println(pbErr)
-				log.Println("Project config file parse err " + projectConfigFile + " SKIPPING!")
+				log.Println("Project Config file parse err " + projectConfigFile + " SKIPPING!")
 				continue
 			}
 
@@ -99,7 +100,7 @@ func (c *config) Parse() {
 			unmarshalProjectErr := yaml.Unmarshal(pb, &pc)
 			if unmarshalProjectErr != nil {
 				log.Println(unmarshalProjectErr)
-				log.Println("Project config file invalid " + projectConfigFile + " SKIPPING!")
+				log.Println("Project Config file invalid " + projectConfigFile + " SKIPPING!")
 				continue
 			}
 
@@ -110,9 +111,9 @@ func (c *config) Parse() {
 
 func generateEmptyConfigFile() {
 
-	if configFileExists, _ := isPathExist(serverConfigFle); configFileExists {
-		input, err := readUserInput("Server config file exist, overwrite? [y/N]")
-		failIfErr(err, "Failed to read your input")
+	if configFileExists, _ := util.IsPathExist(serverConfigFle); configFileExists {
+		input, err := util.ReadUserInput("Server Config file exist, overwrite? [y/N]")
+		util.FailIfErr(err, "Failed to read your input")
 
 		input = strings.ToLower(input)
 
@@ -121,10 +122,10 @@ func generateEmptyConfigFile() {
 			return
 		}
 	} else {
-		// config dir exist
-		if configDirExist, _ := isPathExist(configDir); !configDirExist {
+		// Config dir exist
+		if configDirExist, _ := util.IsPathExist(configDir); !configDirExist {
 			err := os.Mkdir(configDir, 0755)
-			failIfErr(err, "Config dir creation err")
+			util.FailIfErr(err, "Config dir creation err")
 		}
 	}
 
@@ -183,15 +184,15 @@ func generateEmptyConfigFile() {
 	}
 
 	// generated project info
-	servers := config{
-		Servers: []serverConfig{
+	servers := Config{
+		Servers: []ServerConfig{
 			{
-				Key:            makeAbsoluteFilePath("home", "user", "serverKey.pem"),
+				Key:            util.MakeAbsoluteFilePath("home", "user", "serverKey.pem"),
 				Ip:             net.IP{192, 168, 0, 100},
 				Port:           22,
 				User:           "privilegedUserWhoCanDoYourTasks",
 				Password:       "123456",
-				ProjectRoot:    makeAbsoluteFilePath("var", "www", "php80"),
+				ProjectRoot:    util.MakeAbsoluteFilePath("var", "www", "php80"),
 				BackupDestPath: "",
 				BackupSources:  []string{},
 			},
@@ -203,24 +204,24 @@ func generateEmptyConfigFile() {
 		servers.Servers[0].BackupSources = append(servers.Servers[0].BackupSources, project.Path)
 	}
 
-	// write servers config
+	// write servers Config
 	serversYmlData, err := yaml.Marshal(&servers)
-	failIfErr(err)
-	writeToFile(serverConfigFle, serversYmlData, 0600)
+	util.FailIfErr(err)
+	util.WriteToFile(serverConfigFle, serversYmlData, 0600)
 
-	// write projects config
+	// write projects Config
 	for _, project := range projects {
 		projectYmlData, errS := yaml.Marshal(&project)
-		failIfErr(errS)
+		util.FailIfErr(errS)
 
 		// create dir if not exist
 		projectDir := configDir + DS + servers.Servers[0].Ip.String()
-		if projectDirExist, _ := isPathExist(projectDir); !projectDirExist {
+		if projectDirExist, _ := util.IsPathExist(projectDir); !projectDirExist {
 			err2 := os.MkdirAll(projectDir, 0755)
-			failIfErr(err2, "Project config dir creation err: "+projectDir)
+			util.FailIfErr(err2, "Project Config dir creation err: "+projectDir)
 		}
 		projectConfigFile := projectDir + DS + project.Path + ".yml"
-		writeToFile(projectConfigFile, projectYmlData, 0600)
+		util.WriteToFile(projectConfigFile, projectYmlData, 0600)
 	}
 }
 
@@ -229,7 +230,7 @@ func (c *projectPath) parseDbInfo() {
 		return
 	}
 
-	envEntries := parseEnv(c.EnvFileInfo.Path)
+	envEntries := util.ParseEnv(c.EnvFileInfo.Path)
 
 	host := envEntries[c.EnvFileInfo.DbHostKeyName]
 	if host != "" {
@@ -239,7 +240,7 @@ func (c *projectPath) parseDbInfo() {
 	portStr := envEntries[c.EnvFileInfo.DbPortKeyName]
 	if portStr != "" {
 		port, err := strconv.Atoi(portStr)
-		failIfErr(err, "Failed to parse DB Port for "+host)
+		util.FailIfErr(err, "Failed to parse DB Port for "+host)
 		c.DbInfo.Port = port
 	}
 
