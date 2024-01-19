@@ -14,7 +14,7 @@ import (
 
 const (
 	DS              = string(os.PathSeparator)
-	configDir       = "." + DS + "Config"
+	configDir       = "." + DS + "config"
 	serverConfigFle = configDir + DS + "servers.yml"
 )
 
@@ -62,6 +62,8 @@ type Config struct {
 }
 
 func (c *Config) Parse() {
+	fmt.Println(os.Getwd())
+	fmt.Println(serverConfigFle)
 	if exists, _ := util.IsPathExist(serverConfigFle); !exists {
 		log.Fatalln("Config file unavailable at " + serverConfigFle)
 	}
