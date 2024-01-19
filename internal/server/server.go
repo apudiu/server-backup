@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"github.com/apudiu/server-backup/internal/config"
 	"github.com/apudiu/server-backup/internal/util"
 	"golang.org/x/crypto/ssh"
@@ -46,9 +47,14 @@ func ConnectToServer(c *config.ServerConfig) (conn *ssh.Client, err error) {
 func ExecCmd(conn *ssh.Client, cmd string) (stdOut, stdErr io.Reader, err error) {
 
 	session, err := conn.NewSession()
-	util.FailIfErr(err, "Getting new session error on server")
+	if err != nil {
+		return
+	}
 	defer func() {
-		err = session.Close()
+		er := session.Close()
+		if !errors.Is(er, io.EOF) {
+			err = er
+		}
 	}()
 
 	// process CMD
@@ -62,8 +68,7 @@ func ExecCmd(conn *ssh.Client, cmd string) (stdOut, stdErr io.Reader, err error)
 		return
 	}
 
-	//session.Run("find /var -name '*ven*'")
+	//err = session.Wait()
 	err = session.Run(cmd)
-	//session.Wait()
 	return
 }

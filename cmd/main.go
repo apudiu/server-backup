@@ -9,9 +9,7 @@ import (
 	"github.com/apudiu/server-backup/internal/util"
 	"golang.org/x/crypto/ssh"
 	"io"
-	"net"
 	"os"
-	"strconv"
 )
 
 func main() {
@@ -21,8 +19,8 @@ func main() {
 	c.Parse()
 	//fmt.Printf("%+v \n", c)
 
-	for _, server := range c.Servers {
-		doWork(&server)
+	for _, srv := range c.Servers {
+		doWork(&srv)
 	}
 
 }
@@ -41,15 +39,24 @@ func doWork(s *config.ServerConfig) {
 	zipProject(conn)
 }
 
+// todo: move this to some sort of util & make project dir's zip
+func RemoteIsPathExist(c *ssh.Client, p string) (bool, error) {
+	cmd := "ls " + p
+
+	_, _, err := server.ExecCmd(c, cmd)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 func zipProject(c *ssh.Client) (bool, error) {
 
-	//t := tasks.Task{
-	//	Commands:  nil,
-	//	StdOut:    nil,
-	//	StdErr:    nil,
-	//	Succeeded: false,
-	//	ExecErr:   nil,
-	//}
+	isExist, _ := RemoteIsPathExist(c, "/var/www/html/index.php")
+	if isExist {
+		fmt.Println("path exist")
+	}
 
 	cmdList := []string{
 		"find /var -name 'ven*'",
@@ -74,56 +81,4 @@ func zipProject(c *ssh.Client) (bool, error) {
 	}
 
 	return true, nil
-}
-
-// e.g. output, err := remoteRun("root", "MY_IP", "PRIVATE_KEY", "ls")
-func remoteRun(c *config.ServerConfig, cmd string) (string, string, error) {
-	// privateKey could be read from a file, or retrieved from another storage
-	// source, such as the Secret Service / GNOME Keyring
-	key, err := ssh.ParsePrivateKey(util.ReadFromFile(c.Key))
-	if err != nil {
-		return "", "", err
-	}
-	// Authentication
-	cfg := &ssh.ClientConfig{
-		User: c.User,
-		// https://github.com/golang/go/issues/19767
-		// as clientConfig is non-permissive by default
-		// you can set ssh.InsercureIgnoreHostKey to allow any host
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-		Auth: []ssh.AuthMethod{
-			ssh.PublicKeys(key),
-			ssh.Password(c.Password),
-		},
-		//alternatively, you could use a password
-		/*
-		   Auth: []ssh.AuthMethod{
-		       ssh.Password("PASSWORD"),
-		   },
-		*/
-	}
-	// Connect
-	client, err := ssh.Dial("tcp", net.JoinHostPort(c.Ip.String(), strconv.Itoa(c.Port)), cfg)
-	if err != nil {
-		return "", "", err
-	}
-	// Create a session. It is one session per command.
-	session, err := client.NewSession()
-	if err != nil {
-		return "", "", err
-	}
-	defer session.Close()
-
-	var stdOut bytes.Buffer
-	session.Stdout = &stdOut // get output
-	// you can also pass what gets input to the stdin, allowing you to pipe
-	// content from client to server
-	//      session.Stdin = bytes.NewBufferString("My input")
-
-	var stdErr bytes.Buffer
-	session.Stderr = &stdErr
-
-	// Finally, run the command
-	err = session.Run(cmd)
-	return stdOut.String(), stdErr.String(), err
 }
