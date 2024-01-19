@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/apudiu/server-backup/internal/config"
 	"github.com/apudiu/server-backup/internal/server"
-	"github.com/apudiu/server-backup/internal/tasks"
 	"github.com/apudiu/server-backup/internal/util"
 	"golang.org/x/crypto/ssh"
 	"io"
@@ -44,13 +43,13 @@ func doWork(s *config.ServerConfig) {
 
 func zipProject(c *ssh.Client) (bool, error) {
 
-	t := tasks.Task{
-		Commands:  nil,
-		StdOut:    nil,
-		StdErr:    nil,
-		Succeeded: false,
-		ExecErr:   nil,
-	}
+	//t := tasks.Task{
+	//	Commands:  nil,
+	//	StdOut:    nil,
+	//	StdErr:    nil,
+	//	Succeeded: false,
+	//	ExecErr:   nil,
+	//}
 
 	cmdList := []string{
 		"find /var -name 'ven*'",
