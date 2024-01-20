@@ -6,19 +6,19 @@ import (
 	"strings"
 )
 
-func ZipDirectory(c *ssh.Client, sourceDir, destZipPath string) error {
+func ZipDirectory(c *ssh.Client, sourceDir, destZipPath string) (t *Task, err error) {
 	cmd := []string{
 		"zip -r9",
 		destZipPath,
 		sourceDir,
 	}
 
-	t := New([]string{strings.Join(cmd, " ")})
+	t = New([]string{strings.Join(cmd, " ")})
 
-	err := t.Execute(c)
+	err = t.Execute(c)
 	if err != nil {
-		sIp := c.RemoteAddr().String()
-		return util.ErrWithPrefix("ZipDirectory task error for "+sIp, err)
+		err = util.ErrWithPrefix("ZipDirectory task error for "+c.RemoteAddr().String(), err)
+		return
 	}
-	return nil
+	return
 }

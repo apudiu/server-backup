@@ -71,8 +71,8 @@ func ExecCmd(conn *ssh.Client, cmd string) (stdOut, stdErr io.Reader, err error)
 		return
 	}
 
-	//err = session.Wait()
 	err = session.Run(cmd)
+	err = session.Wait()
 	return
 }
 

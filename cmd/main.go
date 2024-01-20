@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/apudiu/server-backup/internal/config"
 	"github.com/apudiu/server-backup/internal/server"
+	"github.com/apudiu/server-backup/internal/tasks"
 	"github.com/apudiu/server-backup/internal/util"
 	"golang.org/x/crypto/ssh"
 	"io"
@@ -36,7 +37,14 @@ func doWork(s *config.ServerConfig) {
 	defer conn.Close()
 
 	// task
-	zipProject(conn)
+	p := s.Projects[0]
+
+	sp := s.ProjectRoot + config.DS + p.Path // source path
+	dp := sp + ".zip"                        // dest path
+
+	_, err := tasks.ZipDirectory(conn, sp, dp)
+	util.FailIfErr(err, "Task failed...")
+
 }
 
 func zipProject(c *ssh.Client) (bool, error) {
