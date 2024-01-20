@@ -100,3 +100,7 @@ func MakeAbsoluteFilePath(paths ...string) (fullPath string) {
 	fullPath += filepath.Join(paths...)
 	return
 }
+
+func ErrWithPrefix(msg string, e error) error {
+	return errors.New(msg + " - " + e.Error())
+}

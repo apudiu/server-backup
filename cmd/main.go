@@ -39,21 +39,9 @@ func doWork(s *config.ServerConfig) {
 	zipProject(conn)
 }
 
-// todo: move this to some sort of util & make project dir's zip
-func RemoteIsPathExist(c *ssh.Client, p string) (bool, error) {
-	cmd := "ls " + p
-
-	_, _, err := server.ExecCmd(c, cmd)
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
-}
-
 func zipProject(c *ssh.Client) (bool, error) {
 
-	isExist, _ := RemoteIsPathExist(c, "/var/www/html/index.php")
+	isExist, _ := server.RemoteIsPathExist(c, "/var/www/html/index.php")
 	if isExist {
 		fmt.Println("path exist")
 	}
