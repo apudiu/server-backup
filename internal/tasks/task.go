@@ -33,3 +33,10 @@ func (t *Task) Execute(c *ssh.Client) error {
 	}
 	return nil
 }
+
+func New(commands []string) *Task {
+	t := &Task{
+		Commands: commands,
+	}
+	return t
+}
