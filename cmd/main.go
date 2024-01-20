@@ -42,6 +42,7 @@ func doWork(s *config.ServerConfig) {
 	sp := s.ProjectRoot + config.DS + p.Path // source path
 	dp := sp + ".zip"                        // dest path
 
+	//todo: fix server zip name & task not ending
 	_, err := tasks.ZipDirectory(conn, sp, dp)
 	util.FailIfErr(err, "Task failed...")
 
