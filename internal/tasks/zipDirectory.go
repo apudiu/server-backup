@@ -1,6 +1,7 @@
 package tasks
 
 import (
+	"fmt"
 	"github.com/apudiu/server-backup/internal/util"
 	"golang.org/x/crypto/ssh"
 	"strings"
@@ -8,7 +9,7 @@ import (
 
 func ZipDirectory(c *ssh.Client, sourceDir, destZipPath string) (t *Task, err error) {
 	cmd := []string{
-		"zip -r9",
+		"zip -r",
 		destZipPath,
 		sourceDir,
 	}
@@ -20,5 +21,10 @@ func ZipDirectory(c *ssh.Client, sourceDir, destZipPath string) (t *Task, err er
 		err = util.ErrWithPrefix("ZipDirectory task error for "+c.RemoteAddr().String(), err)
 		return
 	}
+
+	fmt.Println("After zip")
+
+	fmt.Printf("t: %+v\n", t)
+
 	return
 }

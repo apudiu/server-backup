@@ -104,3 +104,13 @@ func MakeAbsoluteFilePath(paths ...string) (fullPath string) {
 func ErrWithPrefix(msg string, e error) error {
 	return errors.New(msg + " - " + e.Error())
 }
+
+func EolChar() string {
+	var PS = fmt.Sprintf("%v", os.PathSeparator)
+	var lb = "\n"
+
+	if PS != "/" {
+		lb = "\r\n"
+	}
+	return lb
+}

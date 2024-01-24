@@ -1,16 +1,10 @@
 package main
 
 import (
-	"bytes"
-	"errors"
-	"fmt"
 	"github.com/apudiu/server-backup/internal/config"
 	"github.com/apudiu/server-backup/internal/server"
 	"github.com/apudiu/server-backup/internal/tasks"
 	"github.com/apudiu/server-backup/internal/util"
-	"golang.org/x/crypto/ssh"
-	"io"
-	"os"
 )
 
 func main() {
@@ -32,6 +26,15 @@ func doWork(s *config.ServerConfig) {
 	//fmt.Println("stdErr", stdErr)
 	//fmt.Println("err", err)
 
+	//l := logger.Logger{}
+	//l.AddWithLn([]byte("Alhum-du-lillah"))
+	//l.Add([]byte("Subhan Allah"))
+	//
+	//er := l.LogToFile("./logs.log")
+	//if er != nil {
+	//	fmt.Println("Log err", er.Error())
+	//}
+
 	conn, connErr := server.ConnectToServer(s)
 	util.FailIfErr(connErr, "Connection establishment with server "+s.Ip.String()+" failed")
 	defer conn.Close()
@@ -46,36 +49,4 @@ func doWork(s *config.ServerConfig) {
 	_, err := tasks.ZipDirectory(conn, sp, dp)
 	util.FailIfErr(err, "Task failed...")
 
-}
-
-func zipProject(c *ssh.Client) (bool, error) {
-
-	isExist, _ := server.RemoteIsPathExist(c, "/var/www/html/index.php")
-	if isExist {
-		fmt.Println("path exist")
-	}
-
-	cmdList := []string{
-		"find /var -name 'ven*'",
-		"ls -la /var/www",
-	}
-
-	for _, cmd := range cmdList {
-		fmt.Println("CMD: ", cmd)
-
-		stdOut, stdErr, cmdErr := server.ExecCmd(c, cmd)
-		if isEOFErr := errors.Is(cmdErr, io.EOF); !isEOFErr {
-			fmt.Println("cmdErr", cmdErr)
-			return false, cmdErr
-		}
-
-		bb := bytes.NewBuffer(nil)
-
-		io.Copy(bb, stdOut)
-		io.Copy(os.Stderr, stdErr)
-
-		fmt.Println("from buff", bb.String())
-	}
-
-	return true, nil
 }
