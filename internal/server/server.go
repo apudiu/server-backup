@@ -139,6 +139,6 @@ func GerFileFromServer(c *ssh.Client, sourcePath, destPath string) (isSuccess bo
 		err = util.ErrWithPrefix("Result file might not be usable ", err)
 		return
 	}
-
+	//todo: test zip from root dir
 	return true, nil
 }
