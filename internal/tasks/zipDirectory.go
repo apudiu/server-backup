@@ -46,14 +46,14 @@ func formatExclude(l []string, prefixPath string) string {
 		return ""
 	}
 
-	lLen := len(l)
+	lLen := len(l) - 1
 
 	r := ` -x `
 	for i, p := range l {
 		r += fmt.Sprintf(`"%s%s%s"`, prefixPath, config.DS, p)
 
 		// add space after each except last one
-		if i < (lLen - 1) {
+		if i < lLen {
 			r += " "
 		}
 	}
