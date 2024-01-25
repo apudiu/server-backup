@@ -10,8 +10,10 @@ import (
 )
 
 func ZipDirectory(c *ssh.Client, sourceDir, destZipPath string, excludeList []string) (t *Task, err error) {
+	srcBaseDir := filepath.Base(sourceDir)
+
 	zipOptions := "-r9"
-	zipOptions += formatExclude(excludeList)
+	zipOptions += formatExclude(excludeList, srcBaseDir)
 
 	cmd := []string{
 		// go to parent dir of the dir need to be zipped
@@ -23,7 +25,7 @@ func ZipDirectory(c *ssh.Client, sourceDir, destZipPath string, excludeList []st
 		"zip",
 		zipOptions,
 		destZipPath,
-		filepath.Base(sourceDir),
+		srcBaseDir,
 	}
 
 	t = New([]string{strings.Join(cmd, " ")})
@@ -39,14 +41,21 @@ func ZipDirectory(c *ssh.Client, sourceDir, destZipPath string, excludeList []st
 	return
 }
 
-func formatExclude(l []string) string {
+func formatExclude(l []string, prefixPath string) string {
 	if l == nil {
 		return ""
 	}
 
+	lLen := len(l)
+
 	r := ` -x `
-	for _, p := range l {
-		r += `"` + p + `" `
+	for i, p := range l {
+		r += fmt.Sprintf(`"%s%s%s"`, prefixPath, config.DS, p)
+
+		// add space after each except last one
+		if i < (lLen - 1) {
+			r += " "
+		}
 	}
 	return r
 }
