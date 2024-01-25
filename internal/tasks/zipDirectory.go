@@ -2,16 +2,28 @@ package tasks
 
 import (
 	"fmt"
+	"github.com/apudiu/server-backup/internal/config"
 	"github.com/apudiu/server-backup/internal/util"
 	"golang.org/x/crypto/ssh"
+	"path/filepath"
 	"strings"
 )
 
-func ZipDirectory(c *ssh.Client, sourceDir, destZipPath string) (t *Task, err error) {
+func ZipDirectory(c *ssh.Client, sourceDir, destZipPath string, excludeList []string) (t *Task, err error) {
+	zipOptions := "-r9"
+	zipOptions += formatExclude(excludeList)
+
 	cmd := []string{
-		"zip -r",
+		// go to parent dir of the dir need to be zipped
+		"cd",
+		sourceDir + config.DS + "..",
+		"&&",
+
+		// zip the target dir
+		"zip",
+		zipOptions,
 		destZipPath,
-		sourceDir,
+		filepath.Base(sourceDir),
 	}
 
 	t = New([]string{strings.Join(cmd, " ")})
@@ -22,9 +34,19 @@ func ZipDirectory(c *ssh.Client, sourceDir, destZipPath string) (t *Task, err er
 		return
 	}
 
-	fmt.Println("After zip")
-
 	fmt.Printf("t: %+v\n", t)
 
 	return
+}
+
+func formatExclude(l []string) string {
+	if l == nil {
+		return ""
+	}
+
+	r := ` -x `
+	for _, p := range l {
+		r += `"` + p + `" `
+	}
+	return r
 }

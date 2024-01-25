@@ -1,5 +1,6 @@
 path: order-online
 excludePaths:
+    - actions-runner-mono/*
     - api/vendor
     - api/storage/app/*
     - api/storage/framework/*
