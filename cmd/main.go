@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/apudiu/server-backup/internal/config"
 	"github.com/apudiu/server-backup/internal/server"
 	"github.com/apudiu/server-backup/internal/tasks"
@@ -14,9 +15,11 @@ func main() {
 	c.Parse()
 	//fmt.Printf("%+v \n", c)
 
-	for _, srv := range c.Servers {
-		doWork(&srv)
-	}
+	//for _, srv := range c.Servers {
+	//	doWork(&srv)
+	//}
+
+	realtimeRead()
 
 }
 
@@ -45,8 +48,8 @@ func doWork(s *config.ServerConfig) {
 	sp := s.ProjectRoot + config.DS + p.Path // source path
 	dp := sp + ".zip"                        // dest path
 
-	//todo: fix server zip name & task not ending
-	_, err := tasks.ZipDirectory(conn, sp, dp, p.ExcludePaths)
+	tsk, err := tasks.ZipDirectory(conn, sp, dp, p.ExcludePaths)
 	util.FailIfErr(err, "Task failed...")
 
+	fmt.Printf("Task %+v\n", tsk)
 }

@@ -1,10 +1,8 @@
 package server
 
 import (
-	"bytes"
 	"context"
 	"errors"
-	"fmt"
 	"github.com/apudiu/server-backup/internal/config"
 	"github.com/apudiu/server-backup/internal/util"
 	"github.com/bramvdbogaerde/go-scp"
@@ -62,27 +60,18 @@ func ExecCmd(conn *ssh.Client, cmd string) (stdOut, stdErr io.Reader, err error)
 		}
 	}()
 
-	//// process CMD
-	//stdOut, err = session.StdoutPipe()
-	//if err != nil {
-	//	return
-	//}
-	//
-	//stdErr, err = session.StderrPipe()
-	//if err != nil {
-	//	return
-	//}
+	// process CMD
+	stdOut, err = session.StdoutPipe()
+	if err != nil {
+		return
+	}
 
-	var so bytes.Buffer
-	var se bytes.Buffer
+	stdErr, err = session.StderrPipe()
+	if err != nil {
+		return
+	}
 
-	//&so, err = session.StdoutPipe()
-	session.Stderr = &se
-
-	err = session.Run(cmd)
-
-	fmt.Println("done sess", so.String(), se.String())
-
+	err = session.Start(cmd)
 	return
 }
 

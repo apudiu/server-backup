@@ -37,8 +37,6 @@ func ZipDirectory(c *ssh.Client, sourceDir, destZipPath string, excludeList []st
 		return
 	}
 
-	fmt.Printf("t: %+v\n", t)
-
 	return
 }
 

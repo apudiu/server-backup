@@ -14,23 +14,39 @@ type ServerTask interface {
 
 type Task struct {
 	Commands       []string
-	StdOut, StdErr io.Reader
+	StdOut, StdErr io.Writer
 	Succeeded      bool
 	ExecErr        error
 }
 
 func (t *Task) Execute(c *ssh.Client) error {
 
-	for _, cmd := range t.Commands {
-		fmt.Println("CMD: ", cmd)
-
-		stdOut, stdErr, err := server.ExecCmd(c, cmd)
-		if isEOFErr := errors.Is(err, io.EOF); !isEOFErr {
-			return err
-		}
-
-		t.Succeeded, t.StdOut, t.StdErr, t.ExecErr = true, stdOut, stdErr, err
+	_, _, err := server.ExecCmd(c, t.Commands[0])
+	if isEOFErr := errors.Is(err, io.EOF); !isEOFErr && err != nil {
+		return err
 	}
+	fmt.Println("after exec")
+
+	//nw := bufio.NewWriter(stdOut)
+
+	//for {
+	//	n, err2 := stdOut.Write()
+	//	if err2 != nil {
+	//		fmt.Printf("Read %d bytes\n", n)
+	//		fmt.Println("Copy err:", err.Error())
+	//		break
+	//	}
+	//	fmt.Printf(".")
+	//}
+
+	//for _, cmd := range t.Commands {
+	//	stdOut, stdErr, err := server.ExecCmd(c, cmd)
+	//	if isEOFErr := errors.Is(err, io.EOF); !isEOFErr {
+	//		return err
+	//	}
+	//
+	//	t.Succeeded, t.StdOut, t.StdErr, t.ExecErr = true, stdOut, stdErr, err
+	//}
 	return nil
 }
 
