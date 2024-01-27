@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"errors"
 	"github.com/apudiu/server-backup/internal/config"
 	"github.com/apudiu/server-backup/internal/util"
 	"github.com/bramvdbogaerde/go-scp"
@@ -47,44 +46,78 @@ func ConnectToServer(c *config.ServerConfig) (conn *ssh.Client, err error) {
 	return
 }
 
-func ExecCmd(conn *ssh.Client, cmd string) (stdOut, stdErr io.Reader, err error) {
+// ExecCmd executes cmd on the connection, Generally used with go routines.
+// Caller need to wait the returned session to finish the task
+// after reading all outputs from stdOut & stdErr.
+// if call wait before reading all outputs then some output might get cut off
+func ExecCmd(conn *ssh.Client, cmd string) (result []byte, err error) {
 
-	session, err := conn.NewSession()
+	var buf io.Reader
+	//reader := bytes.NewReader(buf)
+
+	start, wait, closeFn, err := MakeExecCmd(conn, cmd, &buf)
 	if err != nil {
 		return
 	}
 	defer func() {
-		er := session.Close()
-		if !errors.Is(er, io.EOF) {
-			err = er
-		}
+		err = closeFn()
 	}()
 
-	// process CMD
-	stdOut, err = session.StdoutPipe()
-	if err != nil {
-		return
-	}
+	err = start()
 
-	stdErr, err = session.StderrPipe()
-	if err != nil {
-		return
-	}
+	err = wait()
 
-	err = session.Start(cmd)
 	return
 }
 
-func RemoteIsPathExist(c *ssh.Client, p string) (bool, error) {
-	cmd := "ls " + p
-
-	_, _, err := ExecCmd(c, cmd)
+func MakeExecCmd(
+	conn *ssh.Client, cmd string, stdOutErr *io.Reader,
+) (start, wait, closeFn func() error, err error) {
+	session, err := conn.NewSession()
 	if err != nil {
-		return false, err
+		return
 	}
 
-	return true, nil
+	session.Stdout = session.Stderr
+
+	// process CMD
+	if stdOutErr != nil {
+		*stdOutErr, err = session.StdoutPipe()
+		if err != nil {
+			return
+		}
+	}
+
+	//if stdErr != nil {
+	//	*stdErr, err = session.StderrPipe()
+	//	if err != nil {
+	//		return
+	//	}
+	//}
+
+	wait = session.Wait
+	start = func() error {
+		return session.Start(cmd)
+	}
+	closeFn = session.Close
+	return
 }
+
+//func RemoteIsPathExist(c *ssh.Client, p string) (bool, error) {
+//	cmd := "ls " + p
+//
+//	wait, err := ExecCmd(c, cmd)
+//	if err != nil {
+//		return false, err
+//	}
+//
+//	err = wait()
+//	if err != nil {
+//		return false, err
+//	}
+//
+//	return true, nil
+//}
 
 func GerFileFromServer(c *ssh.Client, sourcePath, destPath string) (isSuccess bool, err error) {
 	// check if remote file exists

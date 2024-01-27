@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/apudiu/server-backup/internal/config"
 	"github.com/apudiu/server-backup/internal/server"
 	"github.com/apudiu/server-backup/internal/tasks"
@@ -15,11 +14,11 @@ func main() {
 	c.Parse()
 	//fmt.Printf("%+v \n", c)
 
-	//for _, srv := range c.Servers {
-	//	doWork(&srv)
-	//}
+	for _, srv := range c.Servers {
+		doWork(&srv)
+	}
 
-	realtimeRead()
+	//realtimeRead()
 
 }
 
@@ -30,7 +29,7 @@ func doWork(s *config.ServerConfig) {
 	//fmt.Println("err", err)
 
 	//l := logger.Logger{}
-	//l.AddWithLn([]byte("Alhum-du-lillah"))
+	//l.AddLn([]byte("Alhum-du-lillah"))
 	//l.Add([]byte("Subhan Allah"))
 	//
 	//er := l.LogToFile("./logs.log")
@@ -48,8 +47,8 @@ func doWork(s *config.ServerConfig) {
 	sp := s.ProjectRoot + config.DS + p.Path // source path
 	dp := sp + ".zip"                        // dest path
 
-	tsk, err := tasks.ZipDirectory(conn, sp, dp, p.ExcludePaths)
+	_, err := tasks.ZipDirectory(conn, sp, dp, p.ExcludePaths)
 	util.FailIfErr(err, "Task failed...")
 
-	fmt.Printf("Task %+v\n", tsk)
+	//fmt.Printf("Task %+v\n", tsk)
 }

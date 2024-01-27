@@ -1,8 +1,8 @@
 package tasks
 
 import (
-	"errors"
 	"fmt"
+	"github.com/apudiu/server-backup/internal/logger"
 	"github.com/apudiu/server-backup/internal/server"
 	"golang.org/x/crypto/ssh"
 	"io"
@@ -13,18 +13,40 @@ type ServerTask interface {
 }
 
 type Task struct {
-	Commands       []string
-	StdOut, StdErr io.Writer
-	Succeeded      bool
-	ExecErr        error
+	Commands  []string
+	StdOutErr io.Reader
+	Succeeded bool
+	ExecErr   error
 }
 
 func (t *Task) Execute(c *ssh.Client) error {
-
-	_, _, err := server.ExecCmd(c, t.Commands[0])
-	if isEOFErr := errors.Is(err, io.EOF); !isEOFErr && err != nil {
+	start, wait, closeFn, err := server.MakeExecCmd(c, t.Commands[0], &t.StdOutErr)
+	if err != nil {
 		return err
 	}
+	defer func() {
+		err = closeFn()
+	}()
+
+	err = start()
+
+	// read
+	ch := make(chan struct{})
+	l := logger.Logger{}
+	l.ToggleStdOut(true)
+
+	go func() {
+		l.ReadStream(&t.StdOutErr)
+		ch <- struct{}{}
+	}()
+
+	<-ch
+
+	err = wait()
+	if err != nil {
+		fmt.Println("Wait err", err.Error())
+	}
+
 	fmt.Println("after exec")
 
 	//nw := bufio.NewWriter(stdOut)
