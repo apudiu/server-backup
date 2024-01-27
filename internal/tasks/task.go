@@ -1,25 +1,35 @@
 package tasks
 
 import (
-	"fmt"
 	"github.com/apudiu/server-backup/internal/server"
 	"golang.org/x/crypto/ssh"
 	"io"
 )
 
 type ServerTask interface {
-	Execute(serverConn *ssh.Client) (err error)
+	Execute(serverConn *ssh.Client) (result []byte, err error)
+	ExecuteLive(serverConn *ssh.Client) (start, wait, closeFn func() error, err error)
 }
 
 type Task struct {
-	Commands  []string
+	Command   string
 	StdOutErr io.Reader
 	Succeeded bool
 	ExecErr   error
 }
 
-//func (t *Task) Execute(c *ssh.Client) error {
-//	start, wait, closeFn, err := server.ExecCmdLive(c, t.Commands[0], &t.StdOutErr)
+func (t *Task) Execute(c *ssh.Client) (result []byte, err error) {
+	result, err = server.ExecCmd(c, t.Command)
+	return
+}
+
+func (t *Task) ExecuteLive(c *ssh.Client) (start, wait, closeFn func() error, err error) {
+	start, wait, closeFn, err = server.ExecCmdLive(c, t.Command, &t.StdOutErr)
+	return
+}
+
+//func (t *Task) ExecuteLive(c *ssh.Client) error {
+//	start, wait, closeFn, err := server.ExecCmdLive(c, t.Command[0], &t.StdOutErr)
 //	if err != nil {
 //		return err
 //	}
@@ -45,11 +55,11 @@ type Task struct {
 //		fmt.Println("Wait err", err.Error())
 //	}
 //
-//	l.LogToFile("zip.log")
+//	l.WriteToFile("zip.log")
 //
 //	fmt.Println("after exec")
 //
-//	//for _, cmd := range t.Commands {
+//	//for _, cmd := range t.Command {
 //	//	stdOut, stdErr, err := server.ExecCmd(c, cmd)
 //	//	if isEOFErr := errors.Is(err, io.EOF); !isEOFErr {
 //	//		return err
@@ -60,28 +70,9 @@ type Task struct {
 //	return nil
 //}
 
-func (t *Task) Execute(c *ssh.Client) error {
-	res, err := server.ExecCmd(c, t.Commands[0])
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("after exec \n", string(res))
-
-	//for _, cmd := range t.Commands {
-	//	stdOut, stdErr, err := server.ExecCmd(c, cmd)
-	//	if isEOFErr := errors.Is(err, io.EOF); !isEOFErr {
-	//		return err
-	//	}
-	//
-	//	t.Succeeded, t.StdOut, t.StdErr, t.ExecErr = true, stdOut, stdErr, err
-	//}
-	return nil
-}
-
-func New(commands []string) *Task {
+func New(command string) *Task {
 	t := &Task{
-		Commands: commands,
+		Command: command,
 	}
 	return t
 }

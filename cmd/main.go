@@ -32,7 +32,7 @@ func doWork(s *config.ServerConfig) {
 	//l.AddLn([]byte("Alhum-du-lillah"))
 	//l.Add([]byte("Subhan Allah"))
 	//
-	//er := l.LogToFile("./logs.log")
+	//er := l.WriteToFile("./logs.log")
 	//if er != nil {
 	//	fmt.Println("Log err", er.Error())
 	//}
@@ -44,13 +44,16 @@ func doWork(s *config.ServerConfig) {
 	// task
 	p := s.Projects[0]
 
-	sp := s.ProjectRoot + config.DS + p.Path // source path
-	dp := sp + ".zip"                        // dest path
+	//sourcePath := s.ProjectRoot + config.DS + p.Path // source path
+	sourcePath := p.SourcePath(s)
+	sourceZipPath := sourcePath + ".zip" // dest path
 
-	//ext, extErr := server.RemoteIsPathExist(conn, sp)
+	//ext, extErr := server.RemoteIsPathExist(conn, sourcePath)
 	//fmt.Println("EE", ext, extErr)
 
-	_, err := tasks.ZipDirectory(conn, sp, dp, p.ExcludePaths)
+	// todo: log to local dest
+	zipLogPath := p.LogFilePath(s)
+	_, err := tasks.ZipDirectory(conn, sourcePath, sourceZipPath, p.ExcludePaths, zipLogPath)
 	util.FailIfErr(err, "Task failed...")
 
 	//fmt.Printf("Task %+v\n", tsk)

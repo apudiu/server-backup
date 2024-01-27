@@ -3,13 +3,19 @@ package tasks
 import (
 	"fmt"
 	"github.com/apudiu/server-backup/internal/config"
+	"github.com/apudiu/server-backup/internal/logger"
 	"github.com/apudiu/server-backup/internal/util"
 	"golang.org/x/crypto/ssh"
 	"path/filepath"
 	"strings"
 )
 
-func ZipDirectory(c *ssh.Client, sourceDir, destZipPath string, excludeList []string) (t *Task, err error) {
+func ZipDirectory(
+	c *ssh.Client,
+	sourceDir, destZipPath string,
+	excludeList []string,
+	logFilePath string,
+) (t *Task, err error) {
 	srcBaseDir := filepath.Base(sourceDir)
 
 	zipOptions := "-r9"
@@ -29,14 +35,33 @@ func ZipDirectory(c *ssh.Client, sourceDir, destZipPath string, excludeList []st
 		excludeOptions,
 	}
 
-	t = New([]string{strings.Join(cmd, " ")})
-
-	err = t.Execute(c)
+	// create task for execution
+	t = New(strings.Join(cmd, " "))
+	start, wait, closeFn, err := t.ExecuteLive(c)
 	if err != nil {
 		err = util.ErrWithPrefix("ZipDirectory task error for "+c.RemoteAddr().String(), err)
 		return
 	}
+	defer closeFn()
 
+	// read output in realtime
+	l := logger.New()
+
+	ch := make(chan struct{})
+	go func() {
+		l.ReadStream(&t.StdOutErr)
+		ch <- struct{}{}
+	}()
+
+	// wait to copy all output
+	err = start()
+	<-ch
+
+	// wait to finish the task
+	err = wait()
+
+	// put all outputs to the file
+	err = l.WriteToFile(logFilePath)
 	return
 }
 

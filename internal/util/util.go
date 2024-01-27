@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 func WriteToFile(path string, content []byte, perm os.FileMode) {
@@ -117,8 +118,18 @@ func EolChar() string {
 }
 
 func ReadStream(stream *io.Reader, readTo *[]byte) {
+	ReadLinesFromStream(stream, func(b []byte) {
+		*readTo = append(*readTo, b...)
+	})
+}
+
+func ReadLinesFromStream(stream *io.Reader, cb func(b []byte)) {
 	scanner := bufio.NewScanner(*stream)
 	for scanner.Scan() {
-		*readTo = append(*readTo, scanner.Bytes()...)
+		cb(scanner.Bytes())
 	}
+}
+
+func currentTimeStr() string {
+	return time.Now().Format(time.DateTime)
 }

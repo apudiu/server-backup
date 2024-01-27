@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -109,6 +110,51 @@ func (c *Config) Parse() {
 			server.Projects = append(server.Projects, pc)
 		}
 	}
+}
+
+func (c *projectPath) parseDbInfo() {
+	if c.EnvFileInfo.Path == "" {
+		return
+	}
+
+	envEntries := util.ParseEnv(c.EnvFileInfo.Path)
+
+	host := envEntries[c.EnvFileInfo.DbHostKeyName]
+	if host != "" {
+		c.DbInfo.Host = net.ParseIP(host)
+	}
+
+	portStr := envEntries[c.EnvFileInfo.DbPortKeyName]
+	if portStr != "" {
+		port, err := strconv.Atoi(portStr)
+		util.FailIfErr(err, "Failed to parse DB Port for "+host)
+		c.DbInfo.Port = port
+	}
+
+	c.DbInfo.User = envEntries[c.EnvFileInfo.DbUserKeyName]
+	c.DbInfo.Pass = envEntries[c.EnvFileInfo.DbPassKeyName]
+	c.DbInfo.Name = envEntries[c.EnvFileInfo.DbNameKeyName]
+}
+
+// SourcePath returns project absolute path
+func (c *projectPath) SourcePath(s *ServerConfig) string {
+	return s.ProjectRoot + DS + c.Path // server/path/project/path
+}
+
+// DestPath returns project absolute path
+func (c *projectPath) DestPath(s *ServerConfig) string {
+	p := s.BackupDestPath
+
+	// if dest path not empty add slash
+	if p != "" {
+		p += DS
+	}
+
+	return p + c.Path // source/path/project/path
+}
+
+func (c *projectPath) LogFilePath(s *ServerConfig) string {
+	return c.DestPath(s) + DS + time.Now().Format(time.DateOnly) + ".log"
 }
 
 func generateEmptyConfigFile() {
@@ -225,28 +271,4 @@ func generateEmptyConfigFile() {
 		projectConfigFile := projectDir + DS + project.Path + ".yml"
 		util.WriteToFile(projectConfigFile, projectYmlData, 0600)
 	}
-}
-
-func (c *projectPath) parseDbInfo() {
-	if c.EnvFileInfo.Path == "" {
-		return
-	}
-
-	envEntries := util.ParseEnv(c.EnvFileInfo.Path)
-
-	host := envEntries[c.EnvFileInfo.DbHostKeyName]
-	if host != "" {
-		c.DbInfo.Host = net.ParseIP(host)
-	}
-
-	portStr := envEntries[c.EnvFileInfo.DbPortKeyName]
-	if portStr != "" {
-		port, err := strconv.Atoi(portStr)
-		util.FailIfErr(err, "Failed to parse DB Port for "+host)
-		c.DbInfo.Port = port
-	}
-
-	c.DbInfo.User = envEntries[c.EnvFileInfo.DbUserKeyName]
-	c.DbInfo.Pass = envEntries[c.EnvFileInfo.DbPassKeyName]
-	c.DbInfo.Name = envEntries[c.EnvFileInfo.DbNameKeyName]
 }

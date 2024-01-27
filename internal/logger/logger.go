@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"bufio"
 	"fmt"
 	"github.com/apudiu/server-backup/internal/util"
 	"io"
@@ -39,10 +38,9 @@ func (l *Logger) AddLn(b []byte) {
 
 // ReadStream reads from a stream & adds to the log
 func (l *Logger) ReadStream(stream *io.Reader) {
-	scanner := bufio.NewScanner(*stream)
-	for scanner.Scan() {
-		l.AddLn(scanner.Bytes())
-	}
+	util.ReadLinesFromStream(stream, func(b []byte) {
+		l.AddLn(b)
+	})
 }
 
 // Print prints collected longs
@@ -50,17 +48,15 @@ func (l *Logger) Print() {
 	fmt.Println(string(l.data))
 }
 
-// LogToFile dumps to specified file
-func (l *Logger) LogToFile(filePath string) error {
+// WriteToFile dumps to specified file
+func (l *Logger) WriteToFile(filePath string) error {
 	l.locker.Lock()
 
 	f, err := os.OpenFile(filePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
-	defer func() {
-		err = f.Close()
-	}()
+	defer f.Close()
 
 	_, err = f.Write(l.data)
 	if err != nil {
@@ -69,4 +65,8 @@ func (l *Logger) LogToFile(filePath string) error {
 
 	l.locker.Unlock()
 	return nil
+}
+
+func New() *Logger {
+	return &Logger{}
 }
