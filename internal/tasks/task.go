@@ -31,7 +31,6 @@ func (t *Task) Execute(c *ssh.Client) error {
 	// read from task
 	ch := make(chan struct{})
 	l := logger.Logger{}
-	l.ToggleStdOut(true)
 
 	// read output while the cmd is executing
 	go func() {
@@ -46,6 +45,8 @@ func (t *Task) Execute(c *ssh.Client) error {
 	if err != nil {
 		fmt.Println("Wait err", err.Error())
 	}
+
+	l.LogToFile("zip.log")
 
 	fmt.Println("after exec")
 

@@ -25,7 +25,7 @@ func (l *Logger) Add(b []byte) {
 	l.locker.Lock()
 
 	if l.verbose {
-		fmt.Println(string(b))
+		fmt.Print(string(b))
 	}
 
 	l.data = append(l.data, b...)
@@ -34,14 +34,14 @@ func (l *Logger) Add(b []byte) {
 
 // AddLn adds EOL as suffix
 func (l *Logger) AddLn(b []byte) {
-	l.Add(append(b, []byte(util.EolChar())...))
+	l.Add(append(b, []byte(util.Eol)...))
 }
 
 // ReadStream reads from a stream & adds to the log
 func (l *Logger) ReadStream(stream *io.Reader) {
 	scanner := bufio.NewScanner(*stream)
 	for scanner.Scan() {
-		l.Add(scanner.Bytes())
+		l.AddLn(scanner.Bytes())
 	}
 }
 
