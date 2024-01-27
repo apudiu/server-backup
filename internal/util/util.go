@@ -7,6 +7,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -113,4 +114,11 @@ func EolChar() string {
 		lb = "\r\n"
 	}
 	return lb
+}
+
+func ReadStream(stream *io.Reader, readTo *[]byte) {
+	scanner := bufio.NewScanner(*stream)
+	for scanner.Scan() {
+		*readTo = append(*readTo, scanner.Bytes()...)
+	}
 }

@@ -47,6 +47,9 @@ func doWork(s *config.ServerConfig) {
 	sp := s.ProjectRoot + config.DS + p.Path // source path
 	dp := sp + ".zip"                        // dest path
 
+	//ext, extErr := server.RemoteIsPathExist(conn, sp)
+	//fmt.Println("EE", ext, extErr)
+
 	_, err := tasks.ZipDirectory(conn, sp, dp, p.ExcludePaths)
 	util.FailIfErr(err, "Task failed...")
 
