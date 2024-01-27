@@ -28,18 +28,18 @@ func (t *Task) Execute(c *ssh.Client) error {
 		err = closeFn()
 	}()
 
-	err = start()
-
-	// read
+	// read from task
 	ch := make(chan struct{})
 	l := logger.Logger{}
 	l.ToggleStdOut(true)
 
+	// read output while the cmd is executing
 	go func() {
 		l.ReadStream(&t.StdOutErr)
 		ch <- struct{}{}
 	}()
 
+	err = start()
 	<-ch
 
 	err = wait()
