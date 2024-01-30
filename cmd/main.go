@@ -65,6 +65,8 @@ func doWork(s *config.ServerConfig) {
 	_, err = server.GetFileFromServer(conn, sourceZipPath, destZipPath)
 	if err != nil {
 		copyLogger.AddHeader([]byte("Zip copy err: " + sourceZipPath + " to " + destZipPath + ". " + err.Error()))
+	} else {
+		copyLogger.AddHeader([]byte("Copy Done: " + sourceZipPath + " to " + destZipPath))
 	}
 
 	err = copyLogger.WriteToFile(projectLogFilePath)
