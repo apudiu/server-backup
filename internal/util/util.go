@@ -2,6 +2,7 @@ package util
 
 import (
 	"bufio"
+	"bytes"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
@@ -13,6 +14,7 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 func WriteToFile(path string, content []byte, perm os.FileMode) {
@@ -73,6 +75,43 @@ func ParseEnv(path string) map[string]string {
 	fmt.Println(envMap)
 
 	return envMap
+}
+
+func ParseEnvFromContent(b []byte, envEolChar byte) (map[string]string, bool) {
+	if b == nil || len(b) == 0 {
+		return nil, false
+	}
+
+	delim := "="
+	var envMap = make(map[string]string)
+
+	buf := bytes.NewBuffer(b)
+
+	for {
+		line, err := buf.ReadString(envEolChar)
+		if err != nil {
+			break
+		}
+
+		// remove all eol chars
+		line = strings.Trim(line, string(envEolChar))
+		line = strings.Trim(line, string('\r'))
+		line = strings.Trim(line, string('\n'))
+
+		// add k/v in map if found
+		key, value, found := strings.Cut(line, delim)
+		if !found || utf8.RuneCountInString(value) == 0 {
+			continue
+		}
+		envMap[key] = value
+	}
+
+	// if nothing read
+	if len(envMap) == 0 {
+		return nil, false
+	}
+
+	return envMap, true
 }
 
 // KeyGetFromFile parses pe encoded private key form disk

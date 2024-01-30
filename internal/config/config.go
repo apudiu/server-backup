@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"github.com/apudiu/server-backup/internal/util"
 	"gopkg.in/yaml.v3"
@@ -30,7 +31,7 @@ type projectEnvFileInfo struct {
 	DbNameKeyName string `yaml:"dbNameKeyName"`
 }
 
-type projectPath struct {
+type ProjectConfig struct {
 	Path         string             `yaml:"path"`
 	ExcludePaths []string           `yaml:"excludePaths"`
 	ZipFileName  string             `yaml:"zipFileName"`
@@ -49,7 +50,7 @@ type ServerConfig struct {
 	ProjectRoot    string   `yaml:"projectRoot"`
 	BackupSources  []string `yaml:"backupSources"`
 	BackupDestPath string   `yaml:"backupDestPath"`
-	Projects       []projectPath
+	Projects       []ProjectConfig
 }
 
 type Config struct {
@@ -91,7 +92,7 @@ func (c *Config) Parse() {
 				continue
 			}
 
-			pc := projectPath{}
+			pc := ProjectConfig{}
 
 			unmarshalProjectErr := yaml.Unmarshal(pb, &pc)
 			if unmarshalProjectErr != nil {
@@ -105,13 +106,20 @@ func (c *Config) Parse() {
 	}
 }
 
-// parseDbInfo tries to parse DB info form provided .env file
-func (c *projectPath) parseDbInfo() {
+// ParseDbInfo tries to parse DB info form provided .env file
+func (c *ProjectConfig) ParseDbInfo(envContent []byte, envEol byte) error {
 	if c.EnvFileInfo.Path == "" {
-		return
+		return errors.New("env file is not specified")
 	}
 
-	envEntries := util.ParseEnv(c.EnvFileInfo.Path)
+	if envContent == nil || len(envContent) == 0 {
+		return errors.New("envContent missing")
+	}
+
+	envEntries, ok := util.ParseEnvFromContent(envContent, envEol)
+	if !ok {
+		return errors.New("failed to parse env")
+	}
 
 	host := envEntries[c.EnvFileInfo.DbHostKeyName]
 	if host != "" {
@@ -128,15 +136,17 @@ func (c *projectPath) parseDbInfo() {
 	c.DbInfo.User = envEntries[c.EnvFileInfo.DbUserKeyName]
 	c.DbInfo.Pass = envEntries[c.EnvFileInfo.DbPassKeyName]
 	c.DbInfo.Name = envEntries[c.EnvFileInfo.DbNameKeyName]
+
+	return nil
 }
 
 // SourcePath returns project remote absolute path
-func (c *projectPath) SourcePath(s *ServerConfig) string {
+func (c *ProjectConfig) SourcePath(s *ServerConfig) string {
 	return s.ProjectRoot + util.DS + c.Path // server/path/project/path
 }
 
 // DestPath returns project local absolute path
-func (c *projectPath) DestPath(s *ServerConfig) string {
+func (c *ProjectConfig) DestPath(s *ServerConfig) string {
 	p := s.BackupDestPath
 
 	// if dest path not specified use default
@@ -154,7 +164,7 @@ func (c *projectPath) DestPath(s *ServerConfig) string {
 }
 
 // LogFilePath returns local log file path
-func (c *projectPath) LogFilePath(s *ServerConfig) string {
+func (c *ProjectConfig) LogFilePath(s *ServerConfig) string {
 	return c.DestPath(s) + util.DS + time.Now().Format(time.DateOnly) + ".log"
 }
 
@@ -179,7 +189,7 @@ func GenerateEmptyConfigFile() {
 		}
 	}
 
-	projects := []projectPath{
+	projects := []ProjectConfig{
 		{
 			Path: "order-online",
 			ExcludePaths: []string{
