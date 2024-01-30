@@ -38,8 +38,8 @@ func (l *Logger) AddLn(b []byte) {
 }
 
 // AddHeader adds a line like "[2024-12-28 15:16:17] content (@b)"
-func (l *Logger) AddHeader(b string) {
-	ts := fmt.Sprintf("[%s] %s", time.Now().Format(time.DateTime), b)
+func (l *Logger) AddHeader(s string) {
+	ts := fmt.Sprintf("[%s] %s", time.Now().Format(time.DateTime), s)
 	l.AddLn([]byte(ts))
 }
 
