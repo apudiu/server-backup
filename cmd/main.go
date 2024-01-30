@@ -25,19 +25,6 @@ func main() {
 }
 
 func doWork(s *config.ServerConfig) {
-	//stdOut, stdErr, err := remoteRun(s, "ls /var/www/php80")
-	//fmt.Println("stdOut", stdOut)
-	//fmt.Println("stdErr", stdErr)
-	//fmt.Println("err", err)
-
-	//l := logger.Logger{}
-	//l.AddLn([]byte("Alhum-du-lillah"))
-	//l.Add([]byte("Subhan Allah"))
-	//
-	//er := l.WriteToFile("./logs.log")
-	//if er != nil {
-	//	fmt.Println("Log err", er.Error())
-	//}
 
 	conn, connErr := server.ConnectToServer(s)
 	util.FailIfErr(connErr, "Connection establishment with server "+s.Ip.String()+" failed")
@@ -46,19 +33,17 @@ func doWork(s *config.ServerConfig) {
 	// task
 	p := s.Projects[0]
 
-	//sourcePath := s.ProjectRoot + config.DS + p.Path // source path
+	// prepare paths
 	sourcePath := p.SourcePath(s)
 	sourceZipPath := sourcePath + ".zip" // dest path in remote
 	destZipPath := p.DestPath(s) + util.DS + filepath.Base(sourceZipPath)
-
-	//ext, extErr := server.RemoteIsPathExist(conn, sourcePath)
-	//fmt.Println("EE", ext, extErr)
-
 	projectLogFilePath := p.LogFilePath(s)
+
+	// zip the dir
 	_, err := tasks.ZipDirectory(conn, sourcePath, sourceZipPath, p.ExcludePaths, projectLogFilePath)
 	util.FailIfErr(err, "Task failed...")
 
-	// copy zip from server
+	// copy zip from server to local disk & log result
 	copyLogger := logger.New()
 	copyLogger.AddHeader([]byte("Copying " + sourceZipPath + " to " + destZipPath))
 
