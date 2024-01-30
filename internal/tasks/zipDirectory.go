@@ -17,7 +17,7 @@ func ZipDirectory(
 ) (t *Task, err error) {
 	srcBaseDir := filepath.Base(sourceDir)
 
-	zipOptions := "-r9"
+	zipOptions := "-ry9"
 	excludeOptions := formatExclude(excludeList, srcBaseDir)
 
 	cmd := []string{
