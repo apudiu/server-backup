@@ -99,7 +99,7 @@ func RemoteIsPathExist(c *ssh.Client, p string) (bool, error) {
 	return true, nil
 }
 
-func GerFileFromServer(c *ssh.Client, sourcePath, destPath string) (isSuccess bool, err error) {
+func GetFileFromServer(c *ssh.Client, sourcePath, destPath string) (success bool, err error) {
 	// check if remote file exists
 	//exist, err := RemoteIsPathExist(c, sourcePath)
 	//if err != nil || !exist {
@@ -117,17 +117,12 @@ func GerFileFromServer(c *ssh.Client, sourcePath, destPath string) (isSuccess bo
 	// download the file
 
 	// open local file to write to it
-	df, err := os.OpenFile(destPath, os.O_RDWR|os.O_CREATE, 0777)
+	df, err := os.OpenFile(destPath, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		err = util.ErrWithPrefix("Dest file creation error on", err)
 		return
 	}
-	defer func(df *os.File) {
-		e := df.Close()
-		if e != nil {
-			err = util.ErrWithPrefix("Local file closing err", e)
-		}
-	}(df)
+	defer df.Close()
 
 	err = client.CopyFromRemote(context.Background(), df, sourcePath)
 	if err != nil {

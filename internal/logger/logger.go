@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"sync"
+	"time"
 )
 
 type Logger struct {
@@ -34,6 +35,12 @@ func (l *Logger) Add(b []byte) {
 // AddLn adds EOL as suffix
 func (l *Logger) AddLn(b []byte) {
 	l.Add(append(b, []byte(util.Eol)...))
+}
+
+// AddHeader adds a line like "[2024-12-28 15:16:17] content (@b)"
+func (l *Logger) AddHeader(b []byte) {
+	ts := fmt.Sprintf("[%s] %s", time.Now().Format(time.DateTime), b)
+	l.AddLn([]byte(ts))
 }
 
 // ReadStream reads from a stream & adds to the log
