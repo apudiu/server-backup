@@ -56,6 +56,7 @@ type Config struct {
 	Servers []ServerConfig `yaml:"servers"`
 }
 
+// Parse parses configs for all servers and projects under them
 func (c *Config) Parse() {
 	fmt.Println(os.Getwd())
 	fmt.Println(util.ServerConfigFle)
@@ -106,6 +107,7 @@ func (c *Config) Parse() {
 	}
 }
 
+// parseDbInfo tries to parse DB info form provided .env file
 func (c *projectPath) parseDbInfo() {
 	if c.EnvFileInfo.Path == "" {
 		return
@@ -130,12 +132,12 @@ func (c *projectPath) parseDbInfo() {
 	c.DbInfo.Name = envEntries[c.EnvFileInfo.DbNameKeyName]
 }
 
-// SourcePath returns project absolute path
+// SourcePath returns project remote absolute path
 func (c *projectPath) SourcePath(s *ServerConfig) string {
 	return s.ProjectRoot + util.DS + c.Path // server/path/project/path
 }
 
-// DestPath returns project absolute path
+// DestPath returns project local absolute path
 func (c *projectPath) DestPath(s *ServerConfig) string {
 	p := s.BackupDestPath
 
@@ -153,11 +155,13 @@ func (c *projectPath) DestPath(s *ServerConfig) string {
 	return p + c.Path // source/path/project/path
 }
 
+// LogFilePath returns local log file path
 func (c *projectPath) LogFilePath(s *ServerConfig) string {
 	return c.DestPath(s) + util.DS + time.Now().Format(time.DateOnly) + ".log"
 }
 
-func generateEmptyConfigFile() {
+// GenerateEmptyConfigFile generates sample config files
+func GenerateEmptyConfigFile() {
 
 	if configFileExists, _ := util.IsPathExist(util.ServerConfigFle); configFileExists {
 		input, err := util.ReadUserInput("Server Config file exist, overwrite? [y/N]")
