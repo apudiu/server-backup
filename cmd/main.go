@@ -45,13 +45,13 @@ func doWork(s *config.ServerConfig) {
 
 	// copy zip from server to local disk & log result
 	copyLogger := logger.New()
-	copyLogger.AddHeader([]byte("Copying " + sourceZipPath + " to " + destZipPath))
+	copyLogger.AddHeader("Copying " + sourceZipPath + " to " + destZipPath)
 
 	_, err = server.GetFileFromServer(conn, sourceZipPath, destZipPath)
 	if err != nil {
-		copyLogger.AddHeader([]byte("Zip copy err: " + sourceZipPath + " to " + destZipPath + ". " + err.Error()))
+		copyLogger.AddHeader("Zip copy err: " + sourceZipPath + " to " + destZipPath + ". " + err.Error())
 	} else {
-		copyLogger.AddHeader([]byte("Copy Done: " + sourceZipPath + " to " + destZipPath))
+		copyLogger.AddHeader("Copy Done: " + sourceZipPath + " to " + destZipPath)
 	}
 
 	err = copyLogger.WriteToFile(projectLogFilePath)

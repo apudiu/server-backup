@@ -45,7 +45,7 @@ func ZipDirectory(
 
 	// read output in realtime
 	l := logger.New()
-	l.AddHeader([]byte("Zipping"))
+	l.AddHeader("Zipping")
 
 	ch := make(chan struct{})
 	go func() {
