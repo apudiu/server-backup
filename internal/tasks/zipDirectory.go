@@ -2,7 +2,6 @@ package tasks
 
 import (
 	"fmt"
-	"github.com/apudiu/server-backup/internal/config"
 	"github.com/apudiu/server-backup/internal/logger"
 	"github.com/apudiu/server-backup/internal/util"
 	"golang.org/x/crypto/ssh"
@@ -24,7 +23,7 @@ func ZipDirectory(
 	cmd := []string{
 		// go to parent dir of the dir need to be zipped
 		"cd",
-		sourceDir + config.DS + "..",
+		sourceDir + util.DS + "..",
 		"&&",
 
 		// zip the target dir
@@ -74,7 +73,7 @@ func formatExclude(l []string, prefixPath string) string {
 
 	r := `-x `
 	for i, p := range l {
-		r += fmt.Sprintf(`"%s%s%s"`, prefixPath, config.DS, p)
+		r += fmt.Sprintf(`"%s%s%s"`, prefixPath, util.DS, p)
 
 		// add space after each except last one
 		if i < lLen {

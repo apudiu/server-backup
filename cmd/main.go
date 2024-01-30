@@ -51,7 +51,6 @@ func doWork(s *config.ServerConfig) {
 	//ext, extErr := server.RemoteIsPathExist(conn, sourcePath)
 	//fmt.Println("EE", ext, extErr)
 
-	// todo: log to local dest
 	zipLogPath := p.LogFilePath(s)
 	_, err := tasks.ZipDirectory(conn, sourcePath, sourceZipPath, p.ExcludePaths, zipLogPath)
 	util.FailIfErr(err, "Task failed...")

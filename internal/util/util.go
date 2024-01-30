@@ -130,6 +130,25 @@ func ReadLinesFromStream(stream *io.Reader, cb func(b []byte)) {
 	}
 }
 
-func currentTimeStr() string {
+func CurrentTimeStr() string {
 	return time.Now().Format(time.DateTime)
+}
+
+// CreatePath creates path(dirs) recursively if not exist
+// when provided path is a file path (@pathIsFile = true) then creates all dirs except the file
+func CreatePath(path string, perm os.FileMode, pathIsFile bool) error {
+	parentDir := path
+	if pathIsFile {
+		parentDir = filepath.Dir(path)
+	}
+
+	// do not try to create dir if that is not a nested path
+	emptyDir := []string{".", "..", "/", string(os.PathSeparator)}
+	for _, d := range emptyDir {
+		if d == parentDir {
+			return nil
+		}
+	}
+
+	return os.MkdirAll(parentDir, perm)
 }

@@ -13,12 +13,6 @@ import (
 	"time"
 )
 
-const (
-	DS              = string(os.PathSeparator)
-	configDir       = "." + DS + "config"
-	serverConfigFle = configDir + DS + "servers.yml"
-)
-
 type projectDbInfo struct {
 	Host net.IP `yaml:"hostIp"`
 	Port int    `yaml:"port"`
@@ -64,12 +58,12 @@ type Config struct {
 
 func (c *Config) Parse() {
 	fmt.Println(os.Getwd())
-	fmt.Println(serverConfigFle)
-	if exists, _ := util.IsPathExist(serverConfigFle); !exists {
-		log.Fatalln("Config file unavailable at " + serverConfigFle)
+	fmt.Println(util.ServerConfigFle)
+	if exists, _ := util.IsPathExist(util.ServerConfigFle); !exists {
+		log.Fatalln("Config file unavailable at " + util.ServerConfigFle)
 	}
 
-	sb, err := os.ReadFile(serverConfigFle)
+	sb, err := os.ReadFile(util.ServerConfigFle)
 	util.FailIfErr(err)
 
 	unmarshalErr := yaml.Unmarshal(sb, c)
@@ -78,7 +72,7 @@ func (c *Config) Parse() {
 	// load server projects
 	for srvIdx := range c.Servers {
 		server := &c.Servers[srvIdx]
-		configFileDir := configDir + DS + server.Ip.String() + DS
+		configFileDir := util.ConfigDir + util.DS + server.Ip.String() + util.DS
 
 		for _, sourceDir := range server.BackupSources {
 			projectConfigFile := configFileDir + sourceDir + ".yml"
@@ -138,28 +132,34 @@ func (c *projectPath) parseDbInfo() {
 
 // SourcePath returns project absolute path
 func (c *projectPath) SourcePath(s *ServerConfig) string {
-	return s.ProjectRoot + DS + c.Path // server/path/project/path
+	return s.ProjectRoot + util.DS + c.Path // server/path/project/path
 }
 
 // DestPath returns project absolute path
 func (c *projectPath) DestPath(s *ServerConfig) string {
 	p := s.BackupDestPath
 
-	// if dest path not empty add slash
-	if p != "" {
-		p += DS
+	// if dest path not specified use default
+	if p == "" {
+		p = util.BackupDir + util.DS + s.Ip.String()
+	}
+
+	// if dest path doesn't contain trailing slash, add that
+	lc := p[len(p)-1:]
+	if lc != "/" || lc != util.DS {
+		p += util.DS
 	}
 
 	return p + c.Path // source/path/project/path
 }
 
 func (c *projectPath) LogFilePath(s *ServerConfig) string {
-	return c.DestPath(s) + DS + time.Now().Format(time.DateOnly) + ".log"
+	return c.DestPath(s) + util.DS + time.Now().Format(time.DateOnly) + ".log"
 }
 
 func generateEmptyConfigFile() {
 
-	if configFileExists, _ := util.IsPathExist(serverConfigFle); configFileExists {
+	if configFileExists, _ := util.IsPathExist(util.ServerConfigFle); configFileExists {
 		input, err := util.ReadUserInput("Server Config file exist, overwrite? [y/N]")
 		util.FailIfErr(err, "Failed to read your input")
 
@@ -171,8 +171,8 @@ func generateEmptyConfigFile() {
 		}
 	} else {
 		// Config dir exist
-		if configDirExist, _ := util.IsPathExist(configDir); !configDirExist {
-			err := os.Mkdir(configDir, 0755)
+		if configDirExist, _ := util.IsPathExist(util.ConfigDir); !configDirExist {
+			err := os.Mkdir(util.ConfigDir, 0755)
 			util.FailIfErr(err, "Config dir creation err")
 		}
 	}
@@ -186,6 +186,7 @@ func generateEmptyConfigFile() {
 				filepath.Join("api", "storage", "framework", "*"),
 				filepath.Join("api", "storage", "logs", "*"),
 				filepath.Join("api", ".rsyncIgnore"),
+				filepath.Join("www", "vendor", "*"),
 			},
 			ZipFileName: "",
 			EnvFileInfo: projectEnvFileInfo{
@@ -211,6 +212,7 @@ func generateEmptyConfigFile() {
 				filepath.Join("api", "storage", "framework", "*"),
 				filepath.Join("api", "storage", "logs", "*"),
 				filepath.Join("api", ".rsyncIgnore"),
+				filepath.Join("www", "vendor", "*"),
 			},
 			ZipFileName: "",
 			EnvFileInfo: projectEnvFileInfo{
@@ -255,7 +257,7 @@ func generateEmptyConfigFile() {
 	// write servers Config
 	serversYmlData, err := yaml.Marshal(&servers)
 	util.FailIfErr(err)
-	util.WriteToFile(serverConfigFle, serversYmlData, 0600)
+	util.WriteToFile(util.ServerConfigFle, serversYmlData, 0600)
 
 	// write projects Config
 	for _, project := range projects {
@@ -263,12 +265,12 @@ func generateEmptyConfigFile() {
 		util.FailIfErr(errS)
 
 		// create dir if not exist
-		projectDir := configDir + DS + servers.Servers[0].Ip.String()
+		projectDir := util.ConfigDir + util.DS + servers.Servers[0].Ip.String()
 		if projectDirExist, _ := util.IsPathExist(projectDir); !projectDirExist {
 			err2 := os.MkdirAll(projectDir, 0755)
 			util.FailIfErr(err2, "Project Config dir creation err: "+projectDir)
 		}
-		projectConfigFile := projectDir + DS + project.Path + ".yml"
+		projectConfigFile := projectDir + util.DS + project.Path + ".yml"
 		util.WriteToFile(projectConfigFile, projectYmlData, 0600)
 	}
 }

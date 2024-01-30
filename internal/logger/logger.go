@@ -50,6 +50,12 @@ func (l *Logger) Print() {
 
 // WriteToFile dumps to specified file
 func (l *Logger) WriteToFile(filePath string) error {
+	// create path if not exist
+	err := util.CreatePath(filePath, 0755, true)
+	if err != nil {
+		return err
+	}
+
 	l.locker.Lock()
 
 	f, err := os.OpenFile(filePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
