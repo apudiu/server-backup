@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"github.com/apudiu/server-backup/internal/config"
+	"github.com/apudiu/server-backup/internal/logger"
 	"github.com/apudiu/server-backup/internal/server"
 	"github.com/apudiu/server-backup/internal/tasks"
 	"github.com/apudiu/server-backup/internal/util"
@@ -49,16 +49,26 @@ func doWork(s *config.ServerConfig) {
 	//sourcePath := s.ProjectRoot + config.DS + p.Path // source path
 	sourcePath := p.SourcePath(s)
 	sourceZipPath := sourcePath + ".zip" // dest path in remote
-	destZipPath := filepath.Dir(p.DestPath(s)) + util.DS + filepath.Base(sourceZipPath)
+	destZipPath := p.DestPath(s) + util.DS + filepath.Base(sourceZipPath)
 
 	//ext, extErr := server.RemoteIsPathExist(conn, sourcePath)
 	//fmt.Println("EE", ext, extErr)
 
-	zipLogPath := p.LogFilePath(s)
-	_, err := tasks.ZipDirectory(conn, sourcePath, sourceZipPath, p.ExcludePaths, zipLogPath)
+	projectLogFilePath := p.LogFilePath(s)
+	_, err := tasks.ZipDirectory(conn, sourcePath, sourceZipPath, p.ExcludePaths, projectLogFilePath)
 	util.FailIfErr(err, "Task failed...")
 
-	fmt.Println(sourceZipPath, destZipPath)
+	// copy zip from server
+	copyLogger := logger.New()
+	copyLogger.AddHeader([]byte("Copying " + sourceZipPath + " to " + destZipPath))
+
+	_, err = server.GetFileFromServer(conn, sourceZipPath, destZipPath)
+	if err != nil {
+		copyLogger.AddHeader([]byte("Zip copy err: " + sourceZipPath + " to " + destZipPath + ". " + err.Error()))
+	}
+
+	err = copyLogger.WriteToFile(projectLogFilePath)
+	util.FailIfErr(err, "Zip copy log failed to write in file")
 
 	//fmt.Printf("Task %+v\n", tsk)
 }

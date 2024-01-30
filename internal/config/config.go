@@ -58,8 +58,6 @@ type Config struct {
 
 // Parse parses configs for all servers and projects under them
 func (c *Config) Parse() {
-	fmt.Println(os.Getwd())
-	fmt.Println(util.ServerConfigFle)
 	if exists, _ := util.IsPathExist(util.ServerConfigFle); !exists {
 		log.Fatalln("Config file unavailable at " + util.ServerConfigFle)
 	}
