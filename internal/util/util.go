@@ -8,6 +8,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"github.com/fatih/color"
 	"io"
 	"log"
 	"os"
@@ -191,3 +192,10 @@ func CreatePath(path string, perm os.FileMode, pathIsFile bool) error {
 
 	return os.MkdirAll(parentDir, perm)
 }
+
+var ServerLogLn = color.New(color.FgGreen, color.Bold).SprintlnFunc()
+var ServerLogf = color.New(color.FgGreen, color.Bold).SprintfFunc()
+var ProjectLogLn = color.New(color.FgBlue, color.Bold).SprintlnFunc()
+var ProjectLogf = color.New(color.FgBlue, color.Bold).SprintfFunc()
+var ProjectFailLogLn = color.New(color.FgRed, color.Bold).SprintlnFunc()
+var ProjectFailLogf = color.New(color.FgRed, color.Bold).SprintfFunc()

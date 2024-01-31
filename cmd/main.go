@@ -16,7 +16,7 @@ import (
 func main() {
 	runLog := logger.New()
 	runLog.ToggleStdOut(true)
-	runLog.AddHeader("Starting backup")
+	runLog.AddHeader(util.ServerLogf("Starting backup"))
 
 	//generateEmptyConfigFile()
 
@@ -29,9 +29,9 @@ func main() {
 
 	for si := range c.Servers {
 		go func(s *config.ServerConfig) {
-			runLog.AddHeader("Processing server: " + s.Ip.String())
+			runLog.AddHeader(util.ServerLogf("Processing server: " + s.Ip.String()))
 			processServer(s, runLog)
-			runLog.AddHeader("Processed server: " + s.Ip.String())
+			runLog.AddHeader(util.ServerLogf("Processed server: " + s.Ip.String()))
 			wg.Done()
 		}(&c.Servers[si])
 	}
@@ -54,7 +54,7 @@ func processServer(s *config.ServerConfig, runLogger *logger.Logger) {
 	conn, connErr := server.ConnectToServer(s)
 	if connErr != nil {
 		runLogger.AddHeader(
-			fmt.Sprintln("Connection establishment with server", s.Ip.String(), "failed.", connErr.Error()),
+			util.ServerLogLn("Connection establishment with server", s.Ip.String(), "failed.", connErr.Error()),
 		)
 		return
 	}
@@ -66,15 +66,15 @@ func processServer(s *config.ServerConfig, runLogger *logger.Logger) {
 	for pi := range s.Projects {
 		go func(p *config.ProjectConfig) {
 			projOnSrvPathStr := fmt.Sprintf("%s:%s", s.Ip.String(), p.SourcePath(s))
-			runLogger.AddHeader(fmt.Sprintf("Processing project: %s", projOnSrvPathStr))
+			runLogger.AddHeader(util.ProjectLogf("Processing project: %s", projOnSrvPathStr))
 
 			er := processProject(conn, s, p)
 			if er != nil {
 				runLogger.AddHeader(
-					fmt.Sprintln("Processing project failed", projOnSrvPathStr, er.Error()),
+					util.ProjectFailLogLn("Processing project failed", projOnSrvPathStr, er.Error()),
 				)
 			} else {
-				runLogger.AddHeader("Processed project: " + projOnSrvPathStr)
+				runLogger.AddHeader(util.ProjectLogf("Processed project: " + projOnSrvPathStr))
 			}
 
 			wg.Done()
