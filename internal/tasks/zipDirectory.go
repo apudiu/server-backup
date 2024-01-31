@@ -13,7 +13,7 @@ func ZipDirectory(
 	c *ssh.Client,
 	sourceDir, destZipPath string,
 	excludeList []string,
-	logFilePath string,
+	l *logger.Logger,
 ) (t *Task, err error) {
 	srcBaseDir := filepath.Base(sourceDir)
 
@@ -44,7 +44,6 @@ func ZipDirectory(
 	defer closeFn()
 
 	// read output in realtime
-	l := logger.New()
 	l.AddHeader("Zipping")
 
 	ch := make(chan struct{})
@@ -61,7 +60,6 @@ func ZipDirectory(
 	err = wait()
 
 	// put all outputs to the file
-	err = l.WriteToFile(logFilePath)
 	return
 }
 

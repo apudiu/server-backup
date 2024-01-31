@@ -7,7 +7,6 @@ import (
 	"github.com/apudiu/server-backup/internal/util"
 	"golang.org/x/crypto/ssh"
 	"strings"
-	"time"
 )
 
 func DbDumpMySql(
@@ -15,19 +14,14 @@ func DbDumpMySql(
 	sc *config.ServerConfig,
 	pc *config.ProjectConfig,
 	l *logger.Logger,
+	dumpFilePath string,
 ) (t *Task, err error) {
 	srcDir := pc.SourcePath(sc)
 
 	cmdOptions := fmt.Sprintf(
-		`-e -v -h"%v" -u"%v" -p"%v" --add-drop-table`,
+		`-e -h"%v" -u"%v" -p"%v" --add-drop-table`,
 		pc.DbInfo.Host, pc.DbInfo.User, pc.DbInfo.Pass,
 	)
-
-	// like: 2024-12-37_15-16-17_db_name.sql
-	dbDumpFileName := time.Now().Format(time.DateTime)
-	dbDumpFileName = strings.ReplaceAll(dbDumpFileName, " ", "_")
-	dbDumpFileName = strings.ReplaceAll(dbDumpFileName, ":", "-")
-	dbDumpFileName += "_" + pc.DbInfo.Name + ".sql"
 
 	cmd := []string{
 		// go to parent dir of the dir need to be zipped
@@ -39,8 +33,10 @@ func DbDumpMySql(
 		"mysqldump",
 		cmdOptions,
 		pc.DbInfo.Name,
+		"|",
+		"gzip -9",
 		">",
-		dbDumpFileName,
+		dumpFilePath,
 	}
 
 	fmt.Println("cmd: ", strings.Join(cmd, " "))

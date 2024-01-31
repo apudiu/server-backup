@@ -107,8 +107,8 @@ func (c *Config) Parse() {
 }
 
 // ParseDbInfo tries to parse DB info form provided .env file
-func (c *ProjectConfig) ParseDbInfo(envContent []byte, envEol byte) error {
-	if c.EnvFileInfo.Path == "" {
+func (pc *ProjectConfig) ParseDbInfo(envContent []byte, envEol byte) error {
+	if pc.EnvFileInfo.Path == "" {
 		return errors.New("env file is not specified")
 	}
 
@@ -121,37 +121,37 @@ func (c *ProjectConfig) ParseDbInfo(envContent []byte, envEol byte) error {
 		return errors.New("failed to parse env")
 	}
 
-	host := envEntries[c.EnvFileInfo.DbHostKeyName]
+	host := envEntries[pc.EnvFileInfo.DbHostKeyName]
 	if host != "" {
-		c.DbInfo.Host = net.ParseIP(host)
+		pc.DbInfo.Host = net.ParseIP(host)
 	}
 
-	portStr := envEntries[c.EnvFileInfo.DbPortKeyName]
+	portStr := envEntries[pc.EnvFileInfo.DbPortKeyName]
 	if portStr != "" {
 		port, err := strconv.Atoi(portStr)
 		util.FailIfErr(err, "Failed to parse DB Port for "+host)
-		c.DbInfo.Port = port
+		pc.DbInfo.Port = port
 	}
 
-	c.DbInfo.User = envEntries[c.EnvFileInfo.DbUserKeyName]
-	c.DbInfo.Pass = envEntries[c.EnvFileInfo.DbPassKeyName]
-	c.DbInfo.Name = envEntries[c.EnvFileInfo.DbNameKeyName]
+	pc.DbInfo.User = envEntries[pc.EnvFileInfo.DbUserKeyName]
+	pc.DbInfo.Pass = envEntries[pc.EnvFileInfo.DbPassKeyName]
+	pc.DbInfo.Name = envEntries[pc.EnvFileInfo.DbNameKeyName]
 
 	return nil
 }
 
 // SourcePath returns project remote absolute path
-func (c *ProjectConfig) SourcePath(s *ServerConfig) string {
-	return s.ProjectRoot + util.DS + c.Path // server/path/project/path
+func (pc *ProjectConfig) SourcePath(sc *ServerConfig) string {
+	return sc.ProjectRoot + util.DS + pc.Path // server/path/project/path
 }
 
 // DestPath returns project local absolute path
-func (c *ProjectConfig) DestPath(s *ServerConfig) string {
-	p := s.BackupDestPath
+func (pc *ProjectConfig) DestPath(sc *ServerConfig) string {
+	p := sc.BackupDestPath
 
 	// if dest path not specified use default
 	if p == "" {
-		p = util.BackupDir + util.DS + s.Ip.String()
+		p = util.BackupDir + util.DS + sc.Ip.String()
 	}
 
 	// if dest path doesn't contain trailing slash, add that
@@ -160,12 +160,21 @@ func (c *ProjectConfig) DestPath(s *ServerConfig) string {
 		p += util.DS
 	}
 
-	return p + c.Path // source/path/project/path
+	return p + pc.Path + util.DS + time.Now().Format(time.DateOnly) // source/path/project/path
 }
 
 // LogFilePath returns local log file path
-func (c *ProjectConfig) LogFilePath(s *ServerConfig) string {
-	return c.DestPath(s) + util.DS + time.Now().Format(time.DateOnly) + ".log"
+func (pc *ProjectConfig) LogFilePath(sc *ServerConfig) string {
+	return pc.DestPath(sc) + util.DS + time.Now().Format(time.DateOnly) + ".log"
+}
+
+// DbDumpFilePath returns db dump file's absolute path
+// like: /path/to/server/path/to/project/2024-12-17_120925_db_name.sql.gz
+func (pc *ProjectConfig) DbDumpFilePath(sc *ServerConfig) string {
+	f := time.Now().Format(time.DateOnly)
+	f += "_" + pc.DbInfo.Name + ".sql.gz"
+
+	return filepath.Dir(pc.SourcePath(sc)) + util.DS + f
 }
 
 // GenerateEmptyConfigFile generates sample config files

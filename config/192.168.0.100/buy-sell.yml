@@ -1,10 +1,11 @@
 path: buy-sell
 excludePaths:
-    - api/vendor
-    - api/storage/app/*
+    - actions-runner*
+    - api/vendor/*
     - api/storage/framework/*
     - api/storage/logs/*
     - api/.rsyncIgnore
+    - www/vendor/*
 zipFileName: ""
 envFileInfo:
     path: api/.env
