@@ -10,7 +10,6 @@ import (
 	"golang.org/x/crypto/ssh"
 	"log"
 	"os"
-	"path/filepath"
 	"sync"
 )
 
@@ -139,8 +138,7 @@ func zipAndCopyFiles(
 	l *logger.Logger,
 ) {
 	remotePath := p.SourcePath(s)
-	remoteZipPath := remotePath + ".zip"
-	localZipPath := p.DestPath(s) + util.DS + filepath.Base(remoteZipPath)
+	remoteZipPath, localZipPath := p.ZipFilePath(s)
 
 	_, err := tasks.ZipDirectory(conn, remotePath, remoteZipPath, p.ExcludePaths, l)
 	if err != nil {
@@ -178,9 +176,7 @@ func dumpDdAndCopy(
 		return
 	}
 
-	localPath := p.DestPath(s)
-	remoteDbDumpPath := p.DbDumpFilePath(s)
-	localDbDumpPath := localPath + util.DS + filepath.Base(remoteDbDumpPath)
+	remoteDbDumpPath, localDbDumpPath := p.DbDumpFilePath(s)
 
 	_, err = tasks.DbDumpMySql(conn, s, p, l, remoteDbDumpPath)
 	if err != nil {

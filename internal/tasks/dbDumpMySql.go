@@ -49,7 +49,10 @@ func DbDumpMySql(
 	defer closeFn()
 
 	// read output in realtime
-	l.AddHeader("Dumping " + pc.DbInfo.Name + " from " + sc.Ip.String() + sc.ProjectRoot + "/" + pc.Path)
+
+	l.AddHeader(
+		fmt.Sprintf("Dumping %s from %s:%s", pc.DbInfo.Name, sc.Ip.String(), sc.ProjectRoot+util.DS+pc.Path),
+	)
 
 	ch := make(chan struct{})
 	go func() {

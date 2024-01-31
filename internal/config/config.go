@@ -168,13 +168,31 @@ func (pc *ProjectConfig) LogFilePath(sc *ServerConfig) string {
 	return pc.DestPath(sc) + util.DS + time.Now().Format(time.DateOnly) + ".log"
 }
 
-// DbDumpFilePath returns db dump file's absolute path
+// DbDumpFilePath returns db dump file's absolute path for remote & relative for local
 // like: /path/to/server/path/to/project/2024-12-17_120925_db_name.sql.gz
-func (pc *ProjectConfig) DbDumpFilePath(sc *ServerConfig) string {
+// and: ./path/to/backup/dir/2024-12-17_120925_db_name.sql.gz
+func (pc *ProjectConfig) DbDumpFilePath(sc *ServerConfig) (remotePath, localPath string) {
 	f := time.Now().Format(time.DateOnly)
 	f += "_" + pc.DbInfo.Name + ".sql.gz"
 
-	return filepath.Dir(pc.SourcePath(sc)) + util.DS + f
+	remotePath = sc.ProjectRoot + util.DS + f
+	localPath = pc.DestPath(sc) + util.DS + f
+	return
+}
+
+// ZipFilePath returns zip file's absolute path in remote and local
+// like: /path/to/server/path/to/project/2024-12-17_120925_db_name.sql.gz
+// and: path/to/local/2024-12-17_120925_db_name.sql.gz
+func (pc *ProjectConfig) ZipFilePath(sc *ServerConfig) (remotePath, localPath string) {
+	f := time.Now().Format(time.DateOnly)
+	f += "_"
+	f += strings.Trim(pc.Path, " ")
+	f = strings.ReplaceAll(f, " ", "-")
+	f += ".zip"
+
+	remotePath = sc.ProjectRoot + util.DS + f
+	localPath = pc.DestPath(sc) + util.DS + f
+	return
 }
 
 // GenerateEmptyConfigFile generates sample config files
