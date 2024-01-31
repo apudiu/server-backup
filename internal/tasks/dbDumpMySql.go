@@ -39,8 +39,6 @@ func DbDumpMySql(
 		dumpFilePath,
 	}
 
-	fmt.Println("cmd: ", strings.Join(cmd, " "))
-
 	// create task for execution
 	t = New(strings.Join(cmd, " "))
 	start, wait, closeFn, err := t.ExecuteLive(c)
