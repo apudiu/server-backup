@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/apudiu/server-backup/internal/config"
 	"github.com/apudiu/server-backup/internal/logger"
+	"github.com/apudiu/server-backup/internal/remotebackup"
 	"github.com/apudiu/server-backup/internal/server"
 	"github.com/apudiu/server-backup/internal/tasks"
 	"github.com/apudiu/server-backup/internal/util"
@@ -14,6 +15,9 @@ import (
 )
 
 func main() {
+	remotebackup.ListBucket()
+	return
+
 	runLog := logger.New()
 	runLog.ToggleStdOut(true)
 	runLog.AddHeader(util.ServerLogf("Starting backup"))
