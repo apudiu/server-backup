@@ -15,7 +15,29 @@ import (
 )
 
 func main() {
-	remotebackup.ListBucket()
+	uldl, remoteErr := remotebackup.New("server-backup", "all-server-backup-bucket", 10)
+	if remoteErr != nil {
+		fmt.Println("Remote err", remoteErr.Error())
+		return
+	}
+
+	list, listErr := uldl.ListObjects()
+	if listErr != nil {
+		fmt.Println("List err", listErr.Error())
+		return
+	}
+
+	for _, object := range list {
+		fmt.Printf("%s -> %d\n", *object.Key, *object.Size)
+	}
+
+	fi, localFileErr := os.Stat("./downloads/backups/s7.PNG")
+	if localFileErr != nil {
+		fmt.Println("Failed to get start of local file", localFileErr.Error())
+		return
+	}
+	fmt.Println(fi.Name(), fi.Size())
+
 	return
 
 	runLog := logger.New()

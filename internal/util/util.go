@@ -199,3 +199,8 @@ var ProjectLogLn = color.New(color.FgBlue, color.Bold).SprintlnFunc()
 var ProjectLogf = color.New(color.FgBlue, color.Bold).SprintfFunc()
 var ProjectFailLogLn = color.New(color.FgRed, color.Bold).SprintlnFunc()
 var ProjectFailLogf = color.New(color.FgRed, color.Bold).SprintfFunc()
+
+// GetBytesForMb returns bytes for given MB
+func GetBytesForMb(mb int64) int64 {
+	return mb * 1024 * 1024
+}
