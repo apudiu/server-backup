@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/apudiu/server-backup/internal/logger"
 	"github.com/apudiu/server-backup/internal/util"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -22,6 +23,7 @@ type UlDl struct {
 	client            *s3.Client
 	bucket, localDir  string
 	transferChunkSize int64
+	logger            *logger.Logger
 }
 
 // BucketExists checks whether bucket exists in the current account.
@@ -204,7 +206,7 @@ func (ud *UlDl) UploadChangedOrNew() error {
 		// check if this file exist in remote
 		rfSize, found := rcMap[path]
 
-		// when missing in remote, upload the file
+		// when missing in remote, add to upload list
 		if !found {
 			fileList = append(fileList, path)
 			return err
@@ -226,6 +228,8 @@ func (ud *UlDl) UploadChangedOrNew() error {
 
 	// perform upload
 	for _, list := range fileList {
+		// using fn here for closing the file immediately after we're done with it
+		// else no file will be closed before all files are done
 		func(fp string) {
 			f, e := os.OpenFile(fp, os.O_RDONLY, 0644)
 			if e != nil {
@@ -242,11 +246,12 @@ func (ud *UlDl) UploadChangedOrNew() error {
 		}(list)
 	}
 
-	fmt.Println("Upload list:", len(fileList))
+	fmt.Println("Uploaded files:", len(fileList))
 
 	return nil
 }
 
+// todo: add logger to the instance & log all events
 func New(user, bucket, localBackupDir string, transferChunkSizeMb uint8) (*UlDl, error) {
 	// Load the Shared AWS Configuration (~/.aws/config)
 	cfg, err := config.LoadDefaultConfig(
