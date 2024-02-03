@@ -1,7 +1,6 @@
 package remotebackup
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -12,6 +11,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/aws/smithy-go"
+	"io"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
@@ -19,7 +20,7 @@ import (
 
 type UlDl struct {
 	client            *s3.Client
-	bucket            string
+	bucket, localDir  string
 	transferChunkSize int64
 }
 
@@ -98,16 +99,14 @@ func (ud *UlDl) CopyToFolder(objectKey string, folderName string) error {
 
 // UploadObject uses an upload manager to upload data to an object in a bucket.
 // The upload manager breaks large data into parts and uploads the parts concurrently.
-func (ud *UlDl) UploadObject(objectKey string, largeObject []byte) (uploadResult *manager.UploadOutput, err error) {
-	largeBuffer := bytes.NewReader(largeObject)
-
+func (ud *UlDl) UploadObject(objectKey string, file io.Reader) (uploadResult *manager.UploadOutput, err error) {
 	uploader := manager.NewUploader(ud.client, func(u *manager.Uploader) {
 		u.PartSize = ud.transferChunkSize
 	})
 	uploadResult, err = uploader.Upload(context.TODO(), &s3.PutObjectInput{
 		Bucket: aws.String(ud.bucket),
 		Key:    aws.String(objectKey),
-		Body:   largeBuffer,
+		Body:   file,
 	})
 	if err != nil {
 		log.Printf("Couldn't upload large object to %v:%v. Here's why: %v\n",
@@ -168,7 +167,87 @@ func (ud *UlDl) DownloadToFile(objectKey string, targetDirectory string) error {
 	return err
 }
 
-func New(user, bucket string, transferChunkSizeMb uint8) (*UlDl, error) {
+// UploadChangedOrNew uploads changed or newly added files to cloud from local backup dir
+func (ud *UlDl) UploadChangedOrNew() error {
+	// get remote contents
+	remoteContents, remoteErr := ud.ListObjects()
+	if remoteErr != nil {
+		return remoteErr
+	}
+
+	// make remote contents map
+	rcMap := make(map[string]int64)
+
+	for _, rc := range remoteContents {
+		// skip (only) dirs
+		if *rc.Size < 1 {
+			continue
+		}
+
+		rcMap[*rc.Key] = *rc.Size
+	}
+
+	// for upload
+	var fileList []string
+
+	// traverse local backup dir
+	walkEr := filepath.WalkDir(ud.localDir, func(path string, d fs.DirEntry, err error) error {
+		if d.IsDir() {
+			return err
+		}
+
+		fi, err := d.Info()
+		if err != nil {
+			return err
+		}
+
+		// check if this file exist in remote
+		rfSize, found := rcMap[path]
+
+		// when missing in remote, upload the file
+		if !found {
+			fileList = append(fileList, path)
+			return err
+		}
+
+		// when found compare the size & if differ upload new ver
+		if rfSize != fi.Size() {
+			fileList = append(fileList, path)
+		} else {
+			fmt.Println("Skipping:", path)
+		}
+
+		return err
+	})
+
+	if walkEr != nil {
+		return walkEr
+	}
+
+	// perform upload
+	for _, list := range fileList {
+		func(fp string) {
+			f, e := os.OpenFile(fp, os.O_RDONLY, 0644)
+			if e != nil {
+				fmt.Println(fp, "error", e.Error())
+				return
+			}
+			defer f.Close()
+
+			fmt.Println("Uploading:", fp)
+			_, upErr := ud.UploadObject(fp, f)
+			if upErr != nil {
+				fmt.Println("Upload err", fp)
+			}
+		}(list)
+	}
+
+	fmt.Println("Upload list:", len(fileList))
+
+	return nil
+}
+
+func New(user, bucket, localBackupDir string, transferChunkSizeMb uint8) (*UlDl, error) {
 	// Load the Shared AWS Configuration (~/.aws/config)
 	cfg, err := config.LoadDefaultConfig(
 		context.TODO(),
@@ -183,6 +262,7 @@ func New(user, bucket string, transferChunkSizeMb uint8) (*UlDl, error) {
 	return &UlDl{
 		client:            client,
 		bucket:            bucket,
+		localDir:          localBackupDir,
 		transferChunkSize: util.GetBytesForMb(int64(transferChunkSizeMb)),
 	}, nil
 }
