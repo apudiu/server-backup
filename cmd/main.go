@@ -208,3 +208,23 @@ func dumpDdAndCopy(
 		l.AddHeader(fmt.Sprintf("Copy done: %s --> %s", remoteDbDumpPath, localDbDumpPath))
 	}
 }
+
+func uploadBackups(s *config.ServerConfig) {
+	if s.S3User == "" || s.S3Bucket == "" {
+		// log err
+		return
+	}
+
+	uldl, remoteErr := remotebackup.New(
+		s.S3User, s.S3Bucket, s.DestPath(), 10,
+	)
+	if remoteErr != nil {
+		fmt.Println("Remote err", remoteErr.Error())
+		return
+	}
+
+	uldlErr := uldl.UploadChangedOrNew()
+	if uldlErr != nil {
+		fmt.Println("UL DL err", uldlErr.Error())
+	}
+}

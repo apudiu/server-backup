@@ -120,7 +120,7 @@ func (ud *UlDl) UploadObject(objectKey string, file io.Reader) (uploadResult *ma
 }
 
 // DownloadObject uses a download manager to download an object from a bucket.
-// The download manager gets the data in parts and writes them to a buffer until all of
+// The download manager gets the data in parts and writes them to a buffer until all
 // the data has been downloaded.
 func (ud *UlDl) DownloadObject(objectKey string) ([]byte, error) {
 	downloader := manager.NewDownloader(ud.client, func(d *manager.Downloader) {

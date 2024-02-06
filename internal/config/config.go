@@ -51,10 +51,25 @@ type ServerConfig struct {
 	BackupSources  []string `yaml:"backupSources"`
 	BackupDestPath string   `yaml:"backupDestPath"`
 	Projects       []ProjectConfig
+	S3User         string `yaml:"s3User"`
+	S3Bucket       string `yaml:"s3Bucket"`
 }
 
 type Config struct {
 	Servers []ServerConfig `yaml:"servers"`
+}
+
+// DestPath returns main local backup dest path in which
+// projects sub dirs will be created & backed up. like: ./backup/196.163.48.42
+func (sc *ServerConfig) DestPath() string {
+	p := sc.BackupDestPath
+
+	// if dest path not specified use default
+	if p == "" {
+		p = util.BackupDir + util.DS + sc.Ip.String()
+	}
+
+	return p
 }
 
 // Parse parses configs for all servers and projects under them
@@ -147,12 +162,7 @@ func (pc *ProjectConfig) SourcePath(sc *ServerConfig) string {
 
 // DestPath returns project local absolute path
 func (pc *ProjectConfig) DestPath(sc *ServerConfig) string {
-	p := sc.BackupDestPath
-
-	// if dest path not specified use default
-	if p == "" {
-		p = util.BackupDir + util.DS + sc.Ip.String()
-	}
+	p := sc.DestPath()
 
 	// if dest path doesn't contain trailing slash, add that
 	lc := p[len(p)-1:]
@@ -284,6 +294,8 @@ func GenerateEmptyConfigFile() {
 				ProjectRoot:    util.MakeAbsoluteFilePath("var", "www", "php80"),
 				BackupDestPath: "",
 				BackupSources:  []string{},
+				S3User:         "s3-user-who-can-upload-to-the-bucket",
+				S3Bucket:       "s3-bucket-name",
 			},
 		},
 	}
