@@ -15,11 +15,18 @@ import (
 )
 
 func main() {
+	// gen sample config
+	arg, ok := util.GetCliArg(0)
+	if ok && arg == util.ConfigGenArg {
+		config.GenerateEmptyConfigFile()
+		return
+	}
+
+	// or do backup from config
+
 	runLog := logger.New()
 	runLog.ToggleStdOut(true)
 	runLog.AddHeader(util.ServerLogf("Starting backup"))
-
-	//generateEmptyConfigFile()
 
 	c := config.Config{}
 	c.Parse()

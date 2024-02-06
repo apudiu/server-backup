@@ -12,4 +12,5 @@ const (
 	ConfigDir       = "." + DS + "config"
 	ServerConfigFle = ConfigDir + DS + "servers.yml"
 	BackupDir       = "." + DS + "backups"
+	ConfigGenArg    = "gen"
 )

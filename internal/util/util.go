@@ -205,3 +205,24 @@ var ProjectFailLogf = color.New(color.FgRed, color.Bold).SprintfFunc()
 func GetBytesForMb(mb int64) int64 {
 	return mb * 1024 * 1024
 }
+
+// GetCliArg returns arg value at @index.
+// @index is 0 based
+func GetCliArg(index uint8) (arg string, success bool) {
+	// access index
+	ai := index + 1
+
+	// args len
+	al := len(os.Args)
+
+	// if no args provided or
+	// index is out of range
+	if al < 2 || int(ai) >= al {
+		return
+	}
+
+	success = true
+	arg = os.Args[ai]
+
+	return
+}
