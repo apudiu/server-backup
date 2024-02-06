@@ -82,10 +82,10 @@ func processServer(s *config.ServerConfig, runLogger *logger.Logger) {
 		}(&s.Projects[pi])
 	}
 
+	wg.Wait()
+
 	// upload to s3
 	uploadBackups(s, runLogger)
-
-	wg.Wait()
 }
 
 func processProject(

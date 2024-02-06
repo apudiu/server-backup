@@ -270,7 +270,7 @@ func (ud *UlDl) UploadChangedOrNew() error {
 	}
 
 	ud.logger.AddHeader(
-		util.ServerFailLogf("Uploaded %d files", len(fileList)),
+		util.ServerLogf("Uploaded %d files in s3", len(fileList)),
 	)
 
 	return nil
