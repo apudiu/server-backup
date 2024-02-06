@@ -1,7 +1,7 @@
-path: buy-sell
+path: order-online
 excludePaths:
-    - api/vendor
-    - api/storage/app/*
+    - actions-runner*
+    - api/vendor/*
     - api/storage/framework/*
     - api/storage/logs/*
     - api/.rsyncIgnore

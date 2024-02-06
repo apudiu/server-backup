@@ -1,13 +1,27 @@
 servers:
-  - privateKeyPath: /home/apu/Backup/Keys/id_rsa_s
+  # If you've a private key (PK) for the server specify it's location
+  - privateKeyPath: /home/user/serverKey.pem
+    # server ip address for ssh
     ip: 192.168.0.100
+    # ssh port
     port: 22
-    user: developer
+    # ssh user
+    user: privilegedUserWhoCanDoYourTasks
+    # Provide password if you don't have PK or the PK is password protected
+    # if the PK is password protected this password will be used to parse the PK
+    # if no key provided this password will be used to log in as password auth
     password: "123456"
+    # working directory in the server where projects are located
+    # projects must be under this dir
     projectRoot: /var/www/php80
+    # list project (dir) names under @projectRoot
+    # only specified projects will be backed up
+    # if you specify a project here, corresponding project config should reside in @ip/<project name>.yml
     backupSources:
       - order-online
       - buy-sell
+    # If you like specify custom back path,
     backupDestPath: ""
-    s3User: server-backup
-    s3Bucket: all-server-backup-bucket
+    projects: [ ]
+    s3User: s3-user-who-can-upload-to-the-bucket
+    s3Bucket: s3-bucket-name
