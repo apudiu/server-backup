@@ -195,6 +195,7 @@ func CreatePath(path string, perm os.FileMode, pathIsFile bool) error {
 
 var ServerLogLn = color.New(color.FgGreen, color.Bold).SprintlnFunc()
 var ServerLogf = color.New(color.FgGreen, color.Bold).SprintfFunc()
+var ServerFailLogf = color.New(color.FgRed, color.Bold).SprintfFunc()
 var ProjectLogLn = color.New(color.FgBlue, color.Bold).SprintlnFunc()
 var ProjectLogf = color.New(color.FgBlue, color.Bold).SprintfFunc()
 var ProjectFailLogLn = color.New(color.FgRed, color.Bold).SprintlnFunc()

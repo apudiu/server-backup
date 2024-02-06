@@ -15,19 +15,6 @@ import (
 )
 
 func main() {
-	uldl, remoteErr := remotebackup.New("server-backup", "all-server-backup-bucket", "./backups", 10)
-	if remoteErr != nil {
-		fmt.Println("Remote err", remoteErr.Error())
-		return
-	}
-
-	uldlErr := uldl.UploadChangedOrNew()
-	if uldlErr != nil {
-		fmt.Println("UL DL err", uldlErr.Error())
-	}
-
-	return
-
 	runLog := logger.New()
 	runLog.ToggleStdOut(true)
 	runLog.AddHeader(util.ServerLogf("Starting backup"))
@@ -94,6 +81,9 @@ func processServer(s *config.ServerConfig, runLogger *logger.Logger) {
 			wg.Done()
 		}(&s.Projects[pi])
 	}
+
+	// upload to s3
+	uploadBackups(s, runLogger)
 
 	wg.Wait()
 }
@@ -209,22 +199,28 @@ func dumpDdAndCopy(
 	}
 }
 
-func uploadBackups(s *config.ServerConfig) {
-	if s.S3User == "" || s.S3Bucket == "" {
-		// log err
+func uploadBackups(sc *config.ServerConfig, runLogger *logger.Logger) {
+	if sc.S3User == "" || sc.S3Bucket == "" {
+		runLogger.AddHeader(
+			util.ServerLogLn("AWS s3 config unavailable in ", sc.Ip.String(), ". Skipping s3 upload!"),
+		)
 		return
 	}
 
 	uldl, remoteErr := remotebackup.New(
-		s.S3User, s.S3Bucket, s.DestPath(), 10,
+		sc.S3User, sc.S3Bucket, sc.DestPath(), 10, runLogger,
 	)
 	if remoteErr != nil {
-		fmt.Println("Remote err", remoteErr.Error())
+		runLogger.AddHeader(
+			util.ServerFailLogf("AWS s3 err for %s. %s", sc.Ip.String(), remoteErr.Error()),
+		)
 		return
 	}
 
 	uldlErr := uldl.UploadChangedOrNew()
 	if uldlErr != nil {
-		fmt.Println("UL DL err", uldlErr.Error())
+		runLogger.AddHeader(
+			util.ServerFailLogf("s3 upload err for %s. %s ", sc.Ip.String(), uldlErr.Error()),
+		)
 	}
 }

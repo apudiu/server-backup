@@ -38,16 +38,17 @@ func (ud *UlDl) BucketExists() (bool, error) {
 		if errors.As(err, &apiError) {
 			switch apiError.(type) {
 			case *types.NotFound:
-				log.Printf("Bucket %v is available.\n", ud.bucket)
+				ud.logger.AddHeader(
+					util.ServerFailLogf("Bucket %v is unavailable", ud.bucket),
+				)
 				exists = false
 				err = nil
 			default:
-				log.Printf("Either you don't have access to bucket %v or another error occurred. "+
-					"Here's what happened: %v\n", ud.bucket, err)
+				ud.logger.AddHeader(
+					util.ServerFailLogf("Bucket %s access error. %s", ud.bucket, err.Error()),
+				)
 			}
 		}
-	} else {
-		log.Printf("Bucket %v exists and you already own it.", ud.bucket)
 	}
 
 	return exists, err
@@ -64,9 +65,9 @@ func (ud *UlDl) DeleteObjects(objectKeys []string) (error, []types.DeletedObject
 		Delete: &types.Delete{Objects: objectIds},
 	})
 	if err != nil {
-		log.Printf("Couldn't delete objects from bucket %v. Here's why: %v\n", ud.bucket, err)
-	} else {
-		log.Printf("Deleted %v objects.\n", len(output.Deleted))
+		ud.logger.AddHeader(
+			util.ServerFailLogf("Couldn't delete objects from bucket %s. Here's why: %s", ud.bucket, err.Error()),
+		)
 	}
 	return err, output.Deleted
 }
@@ -78,7 +79,9 @@ func (ud *UlDl) ListObjects() ([]types.Object, error) {
 	})
 	var contents []types.Object
 	if err != nil {
-		log.Printf("Couldn't list objects in bucket %v. Here's why: %v\n", ud.bucket, err)
+		ud.logger.AddHeader(
+			util.ServerFailLogf("Couldn't list objects in bucket %s. Here's why: %s", ud.bucket, err.Error()),
+		)
 	} else {
 		contents = result.Contents
 	}
@@ -93,8 +96,12 @@ func (ud *UlDl) CopyToFolder(objectKey string, folderName string) error {
 		Key:        aws.String(fmt.Sprintf("%v/%v", folderName, objectKey)),
 	})
 	if err != nil {
-		log.Printf("Couldn't copy object from %v:%v to %v:%v/%v. Here's why: %v\n",
-			ud.bucket, objectKey, ud.bucket, folderName, objectKey, err)
+		ud.logger.AddHeader(
+			util.ServerFailLogf(
+				"Couldn't copy object from %s:%s to %s:%s/%s. Here's why: %s",
+				ud.bucket, objectKey, ud.bucket, folderName, objectKey, err.Error(),
+			),
+		)
 	}
 	return err
 }
@@ -111,8 +118,12 @@ func (ud *UlDl) UploadObject(objectKey string, file io.Reader) (uploadResult *ma
 		Body:   file,
 	})
 	if err != nil {
-		log.Printf("Couldn't upload large object to %v:%v. Here's why: %v\n",
-			ud.bucket, objectKey, err)
+		ud.logger.AddHeader(
+			util.ServerFailLogf(
+				"Couldn't upload large object to %s:%s. Here's why: %s",
+				ud.bucket, objectKey, err.Error(),
+			),
+		)
 		return nil, err
 	}
 
@@ -163,8 +174,12 @@ func (ud *UlDl) DownloadToFile(objectKey string, targetDirectory string) error {
 		Key:    aws.String(objectKey),
 	})
 	if err != nil {
-		log.Printf("Couldn't download large object from %v:%v. Here's why: %v\n",
-			ud.bucket, objectKey, err)
+		ud.logger.AddHeader(
+			util.ServerFailLogf(
+				"Couldn't download large object from %s:%s. Here's why: %s",
+				ud.bucket, objectKey, err.Error(),
+			),
+		)
 	}
 	return err
 }
@@ -216,7 +231,9 @@ func (ud *UlDl) UploadChangedOrNew() error {
 		if rfSize != fi.Size() {
 			fileList = append(fileList, path)
 		} else {
-			fmt.Println("Skipping:", path)
+			ud.logger.AddHeader(
+				util.ServerLogf("Skipping: %s", path),
+			)
 		}
 
 		return err
@@ -233,26 +250,37 @@ func (ud *UlDl) UploadChangedOrNew() error {
 		func(fp string) {
 			f, e := os.OpenFile(fp, os.O_RDONLY, 0644)
 			if e != nil {
-				fmt.Println(fp, "error", e.Error())
+				ud.logger.AddHeader(
+					util.ServerFailLogf("%s error %s", fp, e.Error()),
+				)
 				return
 			}
 			defer f.Close()
 
-			fmt.Println("Uploading:", fp)
+			ud.logger.AddHeader(
+				util.ServerLogf("Uploading: %s", fp),
+			)
 			_, upErr := ud.UploadObject(fp, f)
 			if upErr != nil {
-				fmt.Println("Upload err", fp)
+				ud.logger.AddHeader(
+					util.ServerFailLogf("Upload err: %s", fp),
+				)
 			}
 		}(list)
 	}
 
-	fmt.Println("Uploaded files:", len(fileList))
+	ud.logger.AddHeader(
+		util.ServerFailLogf("Uploaded %d files", len(fileList)),
+	)
 
 	return nil
 }
 
-// todo: add logger to the instance & log all events
-func New(user, bucket, localBackupDir string, transferChunkSizeMb uint8) (*UlDl, error) {
+func New(
+	user, bucket, localBackupDir string,
+	transferChunkSizeMb uint8,
+	l *logger.Logger,
+) (*UlDl, error) {
 	// Load the Shared AWS Configuration (~/.aws/config)
 	cfg, err := config.LoadDefaultConfig(
 		context.TODO(),
@@ -269,5 +297,6 @@ func New(user, bucket, localBackupDir string, transferChunkSizeMb uint8) (*UlDl,
 		bucket:            bucket,
 		localDir:          localBackupDir,
 		transferChunkSize: util.GetBytesForMb(int64(transferChunkSizeMb)),
+		logger:            l,
 	}, nil
 }
