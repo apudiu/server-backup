@@ -9,6 +9,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -39,6 +40,8 @@ type ProjectConfig struct {
 
 	// when env file is not available, provide DB credentials
 	DbInfo projectDbInfo `yaml:"dbInfo"`
+	// keen this many copies of backup
+	BackupCopies int `yaml:"backupCopies"`
 }
 
 type ServerConfig struct {
@@ -205,6 +208,58 @@ func (pc *ProjectConfig) ZipFilePath(sc *ServerConfig) (remotePath, localPath st
 	return
 }
 
+// BackupCopiesCount returns number of backup copies to keep
+func (pc *ProjectConfig) BackupCopiesCount() int {
+	if pc.BackupCopies > 0 {
+		return pc.BackupCopies
+	}
+	return util.BackupCopies
+}
+
+// GetDeletionList returns list of backup directories that should be deleted
+// to keep last n backups
+func (pc *ProjectConfig) GetDeletionList(sc *ServerConfig) []string {
+	projectBackupDir := filepath.Dir(pc.DestPath(sc))
+
+	var backups []string
+
+	entries, err := os.ReadDir(projectBackupDir)
+	if err != nil {
+		fmt.Println("list err", err.Error())
+		return nil
+	}
+
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+
+		// our directory names will be exactly 10 characters (& bytes), so check for it
+		if len(entry.Name()) != 10 {
+			continue
+		}
+
+		rmDir := projectBackupDir + util.DS + entry.Name()
+		backups = append(backups, rmDir)
+	}
+
+	// specified backup copies to keep
+	keepCount := util.BackupCopies
+	if pc.BackupCopies > 0 {
+		keepCount = pc.BackupCopies
+	}
+
+	// do not continue if there's no extra backup
+	if len(backups) <= keepCount {
+		return nil
+	}
+
+	slices.Sort(backups)
+	slices.Reverse(backups)
+
+	return backups[keepCount:]
+}
+
 // GenerateEmptyConfigFile generates sample config files
 func GenerateEmptyConfigFile() {
 
@@ -251,6 +306,7 @@ func GenerateEmptyConfigFile() {
 				Pass: "",
 				Name: "",
 			},
+			BackupCopies: 3,
 		},
 		{
 			Path: "buy-sell",
@@ -277,6 +333,7 @@ func GenerateEmptyConfigFile() {
 				Pass: "",
 				Name: "",
 			},
+			BackupCopies: 2,
 		},
 	}
 

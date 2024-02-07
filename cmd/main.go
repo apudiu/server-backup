@@ -11,6 +11,7 @@ import (
 	"golang.org/x/crypto/ssh"
 	"log"
 	"os"
+	"strings"
 	"sync"
 )
 
@@ -92,7 +93,7 @@ func processServer(s *config.ServerConfig, runLogger *logger.Logger) {
 	wg.Wait()
 
 	// upload to s3
-	uploadBackups(s, runLogger)
+	//uploadBackups(s, runLogger)
 }
 
 func processProject(
@@ -131,6 +132,9 @@ func processProject(
 	}()
 
 	wg.Wait()
+
+	// keen n backups of this project & delete rest
+	removeExtraProjectBackups(sc, pc, l)
 
 	// write all logs to file
 	err = l.WriteToFile(pc.LogFilePath(sc))
@@ -249,4 +253,42 @@ func uploadBackups(sc *config.ServerConfig, runLogger *logger.Logger) {
 			util.ServerFailLogf("s3 upload err for %s. %s ", sc.Ip.String(), uldlErr.Error()),
 		)
 	}
+}
+
+func removeExtraProjectBackups(
+	sc *config.ServerConfig,
+	pc *config.ProjectConfig,
+	l *logger.Logger,
+) {
+	deletionList := pc.GetDeletionList(sc)
+	if deletionList == nil {
+		return
+	}
+
+	//delete from local
+	for _, dDir := range deletionList {
+		err := os.RemoveAll(dDir)
+		if err != nil {
+			l.AddHeader("Local backup deletion err. " + err.Error())
+			continue
+		}
+		l.AddHeader("Deleted from local: " + dDir)
+	}
+
+	// delete from remote
+	rb, err := remotebackup.New(
+		sc.S3User, sc.S3Bucket, sc.DestPath(), 10, l,
+	)
+	if err != nil {
+		l.AddHeader("Bucket err. " + err.Error())
+		return
+	}
+
+	err, _ = rb.DeleteObjects(deletionList)
+	if err != nil {
+		l.AddHeader("Delete from bucket err. " + err.Error())
+		return
+	}
+
+	l.AddHeader("Deleted from bucket: " + strings.Join(deletionList, ","))
 }

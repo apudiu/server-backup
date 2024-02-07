@@ -12,5 +12,7 @@ const (
 	ConfigDir       = "." + DS + "config"
 	ServerConfigFle = ConfigDir + DS + "servers.yml"
 	BackupDir       = "." + DS + "backups"
-	ConfigGenArg    = "gen"
+	// BackupCopies default backup copies to keep if not specified
+	BackupCopies = 3
+	ConfigGenArg = "gen"
 )

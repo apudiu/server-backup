@@ -29,3 +29,6 @@ dbInfo:
     user: ""
     pass: ""
     name: ""
+# number of backup copies to keep, if not specified of 0 is provided
+# then by default 3 latest copies of backup will be kept & rest will be deleted
+backupCopies: 5
