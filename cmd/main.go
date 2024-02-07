@@ -27,7 +27,7 @@ func main() {
 
 	runLog := logger.New()
 	runLog.ToggleStdOut(true)
-	runLog.AddHeader(util.ServerLogf("Starting backup"))
+	runLog.AddHeader(util.ServerLogf("➡ Starting backup"))
 
 	c := config.Config{}
 	c.Parse()
@@ -46,13 +46,13 @@ func main() {
 	}
 
 	wg.Wait()
-	runLog.AddHeader("Backup ended")
+	runLog.AddHeader("✅ Backup completed")
 
 	runLogFilePath := util.BackupDir + util.DS + "run.log"
 
 	err := runLog.WriteToFile(runLogFilePath)
 	if err != nil {
-		log.Println("Failed to write to run.log", err.Error())
+		log.Println("❌ Failed to write to run.log", err.Error())
 		os.Exit(1)
 	}
 
