@@ -27,7 +27,7 @@ func main() {
 
 	runLog := logger.New()
 	runLog.ToggleStdOut(true)
-	runLog.AddHeader(util.ServerLogf("➡ Starting backup"))
+	runLog.AddHeader(util.ServerLogf("🚀 Starting backup"))
 
 	c := config.Config{}
 	c.Parse()
