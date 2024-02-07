@@ -22,7 +22,8 @@ servers:
       - buy-sell
     # If you like specify custom backup path
     backupDestPath: ""
-    # AWS S3 username who has appropriate permissions for uploading files
+    # AWS user who has appropriate permissions for uploading files
+    # this user/ profile need to be configured in accessible way in the runner machine
     s3User: s3-user-who-can-upload-to-the-bucket
     # AWS S3 bucket name where the provided user can upload files
     s3Bucket: s3-bucket-name
