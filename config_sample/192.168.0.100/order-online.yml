@@ -4,7 +4,6 @@ path: order-online
 excludePaths:
     # for ignoring whole directory it must end with "/*"
     - api/vendor/*
-    - api/storage/app/*
     - api/storage/framework/*
     - api/storage/logs/*
     - api/.rsyncIgnore
