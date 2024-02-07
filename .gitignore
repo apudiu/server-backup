@@ -3,7 +3,7 @@
 build/*
 
 # config files
-config/*
+config/
 !config/192.168.0.100
 !config/192.168.0.100/*.sample.yml
 
