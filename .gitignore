@@ -4,8 +4,6 @@ build/*
 
 # config files
 config/
-!config/192.168.0.100
-!config/192.168.0.100/*.sample.yml
 
 # backups
 backups/**/*
