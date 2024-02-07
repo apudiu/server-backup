@@ -1,19 +1,29 @@
+# project path inside server.projectRoot
 path: order-online
+# exclude this paths when zipping
 excludePaths:
-    - api/vendor
+    # for ignoring whole directory it must end with "/*"
+    - api/vendor/*
     - api/storage/app/*
     - api/storage/framework/*
     - api/storage/logs/*
     - api/.rsyncIgnore
     - www/vendor/*
+# customize zip name if needed
+# by default this will be like yyyy_mm_dd_@path.zip
 zipFileName: ""
+# For db backup
 envFileInfo:
+    # Provide path of a .env file,
+    # contents of this fill will be parsed by provided keys & used to dump the db
     path: api/.env
     dbHostKeyName: DB_HOST
     dbPortKeyName: DB_PORT
     dbUserKeyName: DB_USERNAME
     dbPassKeyName: DB_PASSWORD
     dbNameKeyName: DB_DATABASE
+# if .env is not provided, provide info directly
+# when env file path provided that will be used instead values provided here
 dbInfo:
     hostIp: ""
     port: 0

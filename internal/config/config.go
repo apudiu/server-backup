@@ -42,17 +42,17 @@ type ProjectConfig struct {
 }
 
 type ServerConfig struct {
-	Key            string   `yaml:"privateKeyPath"`
-	Ip             net.IP   `yaml:"ip"`
-	Port           int      `yaml:"port"`
-	User           string   `yaml:"user"`
-	Password       string   `yaml:"password"`
-	ProjectRoot    string   `yaml:"projectRoot"`
-	BackupSources  []string `yaml:"backupSources"`
-	BackupDestPath string   `yaml:"backupDestPath"`
-	Projects       []ProjectConfig
-	S3User         string `yaml:"s3User"`
-	S3Bucket       string `yaml:"s3Bucket"`
+	Key            string          `yaml:"privateKeyPath"`
+	Ip             net.IP          `yaml:"ip"`
+	Port           int             `yaml:"port"`
+	User           string          `yaml:"user"`
+	Password       string          `yaml:"password"`
+	ProjectRoot    string          `yaml:"projectRoot"`
+	BackupSources  []string        `yaml:"backupSources"`
+	BackupDestPath string          `yaml:"backupDestPath"`
+	Projects       []ProjectConfig `yaml:"-"`
+	S3User         string          `yaml:"s3User"`
+	S3Bucket       string          `yaml:"s3Bucket"`
 }
 
 type Config struct {

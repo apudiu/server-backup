@@ -20,8 +20,9 @@ servers:
     backupSources:
       - order-online
       - buy-sell
-    # If you like specify custom back path,
+    # If you like specify custom backup path
     backupDestPath: ""
-    projects: [ ]
+    # AWS S3 username who has appropriate permissions for uploading files
     s3User: s3-user-who-can-upload-to-the-bucket
+    # AWS S3 bucket name where the provided user can upload files
     s3Bucket: s3-bucket-name
