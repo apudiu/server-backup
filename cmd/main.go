@@ -166,6 +166,12 @@ func zipAndCopyFiles(
 	} else {
 		l.AddHeader(fmt.Sprintf("Copy Done: %s --> %s", remoteZipPath, localZipPath))
 	}
+
+	// delete remote file
+	_, err = tasks.DeletePath(conn, remoteZipPath)
+	if err != nil {
+		l.AddHeader(fmt.Sprintf("Remote zip deletion err: %s", remoteZipPath))
+	}
 }
 
 func dumpDdAndCopy(
@@ -210,6 +216,12 @@ func dumpDdAndCopy(
 		l.AddHeader(fmt.Sprintf("DB dump copy err: %s --> %s. %s", remoteDbDumpPath, localDbDumpPath, err.Error()))
 	} else {
 		l.AddHeader(fmt.Sprintf("Copy done: %s --> %s", remoteDbDumpPath, localDbDumpPath))
+	}
+
+	// delete remote file
+	_, err = tasks.DeletePath(conn, remoteDbDumpPath)
+	if err != nil {
+		l.AddHeader(fmt.Sprintf("Remote DB dump deletion err: %s", remoteDbDumpPath))
 	}
 }
 

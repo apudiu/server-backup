@@ -1,6 +1,6 @@
 path: buy-sell
 excludePaths:
-    - api/vendor
+    - api/vendor/*
     - api/storage/app/*
     - api/storage/framework/*
     - api/storage/logs/*
