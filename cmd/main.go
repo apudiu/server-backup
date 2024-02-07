@@ -174,22 +174,29 @@ func dumpDdAndCopy(
 	p *config.ProjectConfig,
 	l *logger.Logger,
 ) {
-	remoteEnvPath := s.ProjectRoot + util.DS + p.Path + util.DS + p.EnvFileInfo.Path
-	envContent, err := tasks.GetFileContent(conn, remoteEnvPath)
-	if err != nil {
-		l.AddHeader("Error getting env file. " + err.Error())
-		return
+	// try parsing env file if available
+	if p.EnvFileInfo.Path != "" {
+		remoteEnvPath := s.ProjectRoot + util.DS + p.Path + util.DS + p.EnvFileInfo.Path
+		envContent, err := tasks.GetFileContent(conn, remoteEnvPath)
+		if err != nil {
+			l.AddHeader("Error getting env file. " + err.Error())
+		} else {
+			err = p.ParseDbInfo(envContent, '\n')
+			if err != nil {
+				l.AddHeader("Error parsing env content. " + err.Error())
+			}
+		}
 	}
 
-	err = p.ParseDbInfo(envContent, '\n')
-	if err != nil {
-		l.AddHeader("Error parsing env content. " + err.Error())
+	// when db info unavailable, (failed to parse or explicitly not provided)
+	if p.DbInfo.Host == nil || p.DbInfo.Port == 0 || p.DbInfo.User == "" || p.DbInfo.Pass == "" || p.DbInfo.Name == "" {
+		l.AddHeader("DB info not provided, skipping DB backup. %s")
 		return
 	}
 
 	remoteDbDumpPath, localDbDumpPath := p.DbDumpFilePath(s)
 
-	_, err = tasks.DbDumpMySql(conn, s, p, l, remoteDbDumpPath)
+	_, err := tasks.DbDumpMySql(conn, s, p, l, remoteDbDumpPath)
 	if err != nil {
 		l.AddHeader("DB dumping error. " + err.Error())
 		return
