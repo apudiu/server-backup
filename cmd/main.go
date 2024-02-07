@@ -190,7 +190,7 @@ func dumpDdAndCopy(
 
 	// when db info unavailable, (failed to parse or explicitly not provided)
 	if p.DbInfo.Host == nil || p.DbInfo.Port == 0 || p.DbInfo.User == "" || p.DbInfo.Pass == "" || p.DbInfo.Name == "" {
-		l.AddHeader("DB info not provided, skipping DB backup. %s")
+		l.AddHeader("DB info unavailable, skipping DB backup")
 		return
 	}
 
