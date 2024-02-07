@@ -16,8 +16,10 @@ import (
 )
 
 func main() {
-	// gen sample config
+	// get arg
 	arg, ok := util.GetCliArg(0)
+
+	// generate sample config
 	if ok && arg == util.ConfigGenArg {
 		config.GenerateEmptyConfigFile()
 		return
