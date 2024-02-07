@@ -231,7 +231,6 @@ func GenerateEmptyConfigFile() {
 			Path: "order-online",
 			ExcludePaths: []string{
 				filepath.Join("api", "vendor", "*"),
-				filepath.Join("api", "storage", "app", "*"),
 				filepath.Join("api", "storage", "framework", "*"),
 				filepath.Join("api", "storage", "logs", "*"),
 				filepath.Join("api", ".rsyncIgnore"),
@@ -257,7 +256,6 @@ func GenerateEmptyConfigFile() {
 			Path: "buy-sell",
 			ExcludePaths: []string{
 				filepath.Join("api", "vendor", "*"),
-				filepath.Join("api", "storage", "app", "*"),
 				filepath.Join("api", "storage", "framework", "*"),
 				filepath.Join("api", "storage", "logs", "*"),
 				filepath.Join("api", ".rsyncIgnore"),
