@@ -92,7 +92,7 @@ The configuration works like this. First you define a server and list which dire
         <td>backupSources</td>
         <td>y</td>
         <td>
-            List directories (project/ websites). This must be immediate child of <strong>projectRoot</strong>.Only specified projects will be backed. <br> 
+            List directories (project/ websites). This must be immediate child of <strong>projectRoot</strong>.Only specified projects will be backed up. <br> 
             If you specify a project here, corresponding project config should reside in <code>./config/[ip]/[backupSource[n]].yml</code>. <br><br>
             For ex: if your server ip is <code>192.168.16.18</code> and your website folder is <code>foo-website</code>. Then <code>foo-website</code> should be listed in this config and project config should reside in <code>./config/192.168.16.18/foo-website.yml</code>. You need to create it by copying existing one or customizing generated one
         </td>
@@ -102,7 +102,7 @@ The configuration works like this. First you define a server and list which dire
         <td>n</td>
         <td>
             File backups will be placed in this path. <br>
-            Specify custom backup path in local fs (ff you'd like), If not specified this will use <code>./backups</code> as local destination
+            Specify custom backup path in local fs (if you'd like), If not specified this will use <code>./backups</code> as local backup directory
         </td>
     </tr>
     <tr>
@@ -110,7 +110,7 @@ The configuration works like this. First you define a server and list which dire
         <td>n</td>
         <td>
             If you need to transfer your backups in AWS S3 then you need to specify it. <br>
-            Locally configured AWS credential profile name (this is not a IAM user's name) <br>
+            Locally configured AWS credential profile name (this is not an IAM user's name) <br>
             <i>Specified profile should've appropriate permission to the bucket <strong>s3Bucket</strong></i>
         </td>
     </tr>
@@ -193,14 +193,14 @@ You can find this in `./config_sample` directory or can generate sample one in a
             <td>zipFileName</td>
             <td>n</td>
             <td>
-                Customize zip name if needed. By default this will be like yyyy_mm_dd_@path.zip. It's recommended not to change this unless necessary.
+                Customize zip name if needed. By default this will be like yyyy-mm-dd_<strong>path</strong>.zip. It's recommended not to change this unless necessary.
             </td>
         </tr>
         <tr>
             <td><strong>envFileInfo</strong></td>
             <td>n</td>
             <td>
-                This section is required when you want to backup your DB and don't have / want to provide DB credentials in explicitly in <strong>dbInfo</strong> section. <br>
+                This section is required when you want to backup your DB and don't have / want to provide DB credentials explicitly in <strong>dbInfo</strong> section. <br>
                 This section is used to parse provided env file to backup your DB (currently MySQL/ MariaDB) is supported). <br>
                 If you do not need DB backup just leave this empty or delete this section
             </td>
@@ -298,7 +298,7 @@ You can find this in `./config_sample` directory or can generate sample one in a
             <td>
                 Number of backup copies to keep, if not specified or 0 (zero) is provided then by default 3 latest copies of backup will be kept and rest will be deleted.
                 It'll keep provided number of copies in local & S3 (if provided). <br> <br>
-                <i>For Ex: if you specify 5, to keep latest 5 copies of this project then this will backup first and then check if there's more than 5 copies in local & S3, If any extra copy is found, it'll delete that (form local & S3)</i>
+                <i>For ex: if you specify 5, to keep latest 5 copies of this project then this will backup first and then check if there's more than 5 copies in local & S3, If any extra copy is found, it'll delete that (form local & S3 in). It'll delete oldest copies to keep latest n backups</i>
             </td>
         </tr>
 
