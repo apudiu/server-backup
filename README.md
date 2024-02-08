@@ -348,8 +348,8 @@ backupCopies: 5
 You can find this in `./config/[server-ip]/[project-dir].yml` directory or can generate sample one in above mentioned way.
 
 ### Contribution
-I've built what we need till now. But I think there's possibility that this tool can be a great too which works with many different DB's. Supports hostnames instead of server ip's etc.
-If anybody need this kind of features, go ahead and extend/ modify this. If you think you'r work can be useful & improve this tool then submit a PR. I'm open to appreciate that.
+I've built what we need till now. But I think there's possibility that this tool can be a great tool which works with many different DB's. Supports hostnames instead server ip's etc.
+If anybody need this kind of features, go ahead and extend/ modify this. If you think you'r work can be useful to others/ improve this tool then submit a PR. I'm open to appreciate that.
 
 ### Getting Help
 Something not working for you? Open an issue, I'll try to help :)
