@@ -95,7 +95,7 @@ func processServer(s *config.ServerConfig, runLogger *logger.Logger) {
 	wg.Wait()
 
 	// upload to s3
-	//uploadBackups(s, runLogger)
+	uploadBackups(s, runLogger)
 }
 
 func processProject(
