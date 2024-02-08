@@ -15,7 +15,7 @@ use this tool :)
 
 ### How
 
-1. Download appropriate binary from **Releases**. for ex: `server-backup-linux-amd64` (calling it `bin`)
+1. Download appropriate binary from **Releases**. for ex: `server-backup-linux-amd64` (calling it `bin`) or clone the repo & run `build.sh` to build from source. If you're not in linux then you might need to to run `go build ./cmd`
 2. Execute `bin gen` to generate sample configuration.
 3. Customize parameters in `./config/servers.yml` & `./config/[server-ip]/[project-name].yml` with your data
 4. Run backup by executing `./bin`
