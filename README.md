@@ -32,7 +32,7 @@ use this tool :)
 6. Transfer files & DB backup zip in local
 7. Upload this in S3
 8. Keep specified number of backups for each project (website) from each server
-9. A-Z logs available, in run.log & each server's log
+9. A-Z logs available, in run.log & project logs
 10. Project backup logs are included in backup directory (uploaded in S3 too)
 11. There's `[backup-dir]/run.log` where a log summery is available (this is not available in S3)
 
