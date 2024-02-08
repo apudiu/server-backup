@@ -25,13 +25,16 @@ use this tool :)
 ### Features
 
 1. Backup project files as zip
-2. Can specify ignore list in the zip
-3. Export database (currently MySQL/ MariaDB is supported) as zip
-4. Transfer files & DB backup zip in local
-5. Upload this in S3
-6. Keep specified number of backups for each project (website) from each server
-7. Project backup logs are included in backup directory (uploaded in S3 too)
-8. There's `[backup-dir]/run.log` where a log summery is available (this is not available in S3)
+2. Parallel backups of all websites in all servers (with single connection to each server)
+3. Parallel download of backups in local, sequential upload in S3
+4. Can specify ignore list in the zip
+5. Export database (currently MySQL/ MariaDB is supported) as zip
+6. Transfer files & DB backup zip in local
+7. Upload this in S3
+8. Keep specified number of backups for each project (website) from each server
+9. A-Z logs available, in run.log & each server's log
+10. Project backup logs are included in backup directory (uploaded in S3 too)
+11. There's `[backup-dir]/run.log` where a log summery is available (this is not available in S3)
 
 #### Config parameters `./config/servers.yml`
 The configuration works like this. First you define a server and list which directories should be backed up. <br> 
