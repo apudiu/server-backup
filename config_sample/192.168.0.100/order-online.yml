@@ -3,6 +3,7 @@ path: order-online
 # exclude this paths when zipping
 excludePaths:
     # for ignoring whole directory it must end with "/*"
+    # - "*" # for excluding all files backup
     - api/vendor/*
     - api/storage/framework/*
     - api/storage/logs/*
